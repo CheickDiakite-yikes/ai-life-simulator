@@ -2,8 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { getChatResponse } from '../services/geminiService';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 
-export const ChatInterface: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface ChatInterfaceProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onOpen: () => void;
+}
+
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, onOpen }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<{role: string, parts: {text: string}[]}[]>([]);
@@ -38,8 +43,8 @@ export const ChatInterface: React.FC = () => {
   if (!isOpen) {
     return (
       <button 
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 p-4 bg-purple-600 rounded-full shadow-lg hover:bg-purple-500 transition-colors z-40"
+        onClick={onOpen}
+        className="hidden md:block fixed bottom-6 right-6 p-4 bg-purple-600 rounded-full shadow-lg hover:bg-purple-500 transition-colors z-40"
       >
         <MessageCircle size={24} color="white" />
       </button>
@@ -47,10 +52,10 @@ export const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 w-80 md:w-96 h-[500px] glass-panel rounded-xl flex flex-col z-40 shadow-2xl">
+    <div className="fixed bottom-[56px] md:bottom-6 right-0 md:right-6 w-full md:w-96 h-[50vh] md:h-[500px] glass-panel md:rounded-xl rounded-t-xl flex flex-col z-40 shadow-2xl mx-auto border-x-0 md:border-x border-b-0 md:border-b">
       <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 rounded-t-xl">
         <h3 className="font-semibold text-purple-300">Aetheria Assistant</h3>
-        <button onClick={() => setIsOpen(false)}><X size={18} className="text-gray-400 hover:text-white" /></button>
+        <button onClick={onClose}><X size={18} className="text-gray-400 hover:text-white" /></button>
       </div>
       
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -64,7 +69,7 @@ export const ChatInterface: React.FC = () => {
         {loading && <div className="text-gray-400 text-xs flex items-center gap-2"><Loader2 className="animate-spin" size={12}/> AI is typing...</div>}
       </div>
 
-      <div className="p-3 border-t border-white/10 flex gap-2">
+      <div className="p-3 border-t border-white/10 flex gap-2 bg-[#0d1117]">
         <input 
           type="text" 
           value={input}

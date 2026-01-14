@@ -3,7 +3,7 @@ import { Character, LifeEvent, TimeStep, NewsItem } from '../types';
 import { generateSceneImage, generateSceneVideo, generateSpeech } from '../services/geminiService';
 import { 
   Heart, Zap, Brain, Wallet, User, Calendar, Pause, Play, 
-  Send, Sparkles, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard 
+  Send, Sparkles, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard, MessageCircle 
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -15,6 +15,9 @@ interface DashboardProps {
   timeStep: TimeStep;
   onTimeStepChange: (step: TimeStep) => void;
   currentDate: string;
+  isChatOpen: boolean;
+  onToggleChat: () => void;
+  onPlay: () => void; // New prop for the play button
 }
 
 // Sub-component for individual Event Cards to manage their own media state
@@ -37,11 +40,15 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
   const handleGenImage = async () => {
     if (imgUrl) return;
     setLoadingMedia('image');
-    const prompt = event.visualPrompt || event.description;
-    const url = await generateSceneImage(prompt, "16:9", "2K");
-    if (url) {
-      setImgUrl(url);
-      event.imageUrl = url; // Cache in object
+    try {
+      const prompt = event.visualPrompt || event.description;
+      const url = await generateSceneImage(prompt, "16:9", "2K");
+      if (url) {
+        setImgUrl(url);
+        event.imageUrl = url; // Cache in object
+      }
+    } catch (e) {
+      console.error("Failed to generate image", e);
     }
     setLoadingMedia(null);
   };
@@ -49,28 +56,38 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
   const handleGenVideo = async () => {
     if (vidUrl) return;
     setLoadingMedia('video');
-    const prompt = event.visualPrompt || event.description;
-    const url = await generateSceneVideo(prompt, "16:9");
-    if (url) {
-      setVidUrl(url);
-      event.videoUrl = url; // Cache in object
+    try {
+      const prompt = event.visualPrompt || event.description;
+      const url = await generateSceneVideo(prompt, "16:9");
+      if (url) {
+        setVidUrl(url);
+        event.videoUrl = url; // Cache in object
+      }
+    } catch (e) {
+      console.error("Failed to generate video", e);
     }
     setLoadingMedia(null);
   };
 
   const handleGenAudio = async () => {
+    // If we already have the URL, just play it
     if (audioUrl) {
       const audio = new Audio(audioUrl);
-      audio.play();
+      audio.play().catch(e => console.error("Audio playback failed", e));
       return;
     }
+
     setLoadingMedia('audio');
-    const url = await generateSpeech(event.description);
-    if (url) {
-      setAudioUrl(url);
-      event.audioUrl = url; // Cache
-      const audio = new Audio(url);
-      audio.play();
+    try {
+      const url = await generateSpeech(event.description);
+      if (url) {
+        setAudioUrl(url);
+        event.audioUrl = url; // Cache
+        const audio = new Audio(url);
+        audio.play().catch(e => console.error("Audio playback failed", e));
+      }
+    } catch (e) {
+      console.error("Failed to generate speech", e);
     }
     setLoadingMedia(null);
   };
@@ -122,13 +139,13 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
                {loadingMedia === 'audio' && <div className="text-xs text-green-400 flex items-center gap-2"><Loader2 size={12} className="animate-spin"/> Synthesizing Voice...</div>}
                
                {imgUrl && !vidUrl && (
-                 <div className="rounded-lg overflow-hidden border border-white/10 mt-2">
+                 <div className="rounded-lg overflow-hidden border border-white/10 mt-2 animate-fade-in">
                    <img src={imgUrl} alt="Scene" className="w-full h-auto object-cover max-h-64" />
                  </div>
                )}
                
                {vidUrl && (
-                 <div className="rounded-lg overflow-hidden border border-white/10 mt-2">
+                 <div className="rounded-lg overflow-hidden border border-white/10 mt-2 animate-fade-in">
                    <video src={vidUrl} controls autoPlay loop className="w-full h-auto max-h-64" />
                  </div>
                )}
@@ -139,7 +156,7 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
                <button 
                  onClick={handleGenImage} 
                  disabled={!!imgUrl || !!loadingMedia}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-900/20 hover:bg-blue-900/40 text-blue-300 rounded text-xs border border-blue-500/20 disabled:opacity-50"
+                 className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-900/20 hover:bg-blue-900/40 text-blue-300 rounded text-xs border border-blue-500/20 disabled:opacity-50 transition-all"
                  title="Visualize Scene (Image)"
                >
                  <Camera size={12} /> {imgUrl ? 'Visualized' : 'Visualize'}
@@ -148,7 +165,7 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
                <button 
                  onClick={handleGenVideo} 
                  disabled={!!vidUrl || !!loadingMedia}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/20 hover:bg-purple-900/40 text-purple-300 rounded text-xs border border-purple-500/20 disabled:opacity-50"
+                 className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-900/20 hover:bg-purple-900/40 text-purple-300 rounded text-xs border border-purple-500/20 disabled:opacity-50 transition-all"
                  title="Animate Scene (Video)"
                >
                  <Video size={12} /> {vidUrl ? 'Animated' : 'Animate'}
@@ -157,7 +174,7 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
                <button 
                  onClick={handleGenAudio}
                  disabled={loadingMedia === 'audio'}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-green-900/20 hover:bg-green-900/40 text-green-300 rounded text-xs border border-green-500/20 disabled:opacity-50"
+                 className="flex items-center gap-1.5 px-3 py-1.5 bg-green-900/20 hover:bg-green-900/40 text-green-300 rounded text-xs border border-green-500/20 disabled:opacity-50 transition-all"
                  title="Narrate Event"
                >
                  <Volume2 size={12} /> {audioUrl ? 'Replay' : 'Narrate'}
@@ -178,7 +195,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   isLoading,
   timeStep,
   onTimeStepChange,
-  currentDate
+  currentDate,
+  isChatOpen,
+  onToggleChat,
+  onPlay
 }) => {
   const [customInput, setCustomInput] = useState('');
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
@@ -240,17 +260,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className="h-screen bg-[#050914] text-white flex flex-col font-sans overflow-hidden">
+    <div className="fixed inset-0 bg-[#050914] text-white flex flex-col font-sans">
       
       {/* --- Header --- */}
       <header className="h-16 border-b border-white/10 flex items-center justify-between px-4 md:px-6 bg-[#0B101B] shrink-0 z-20">
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold tracking-wider text-[#e2e8f0] font-heading bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+        
+        {/* Left Side: Title & Date */}
+        <div className="flex items-center gap-4 md:gap-6 flex-shrink-1 min-w-0">
+          
+          {/* Desktop Title */}
+          <h1 className="hidden md:block text-xl font-bold tracking-wider text-[#e2e8f0] font-heading bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
             LIFESIM
           </h1>
+
+          {/* Mobile Title & Date Stacked */}
+          <div className="md:hidden flex flex-col justify-center">
+             <h1 className="text-lg font-bold tracking-wider text-[#e2e8f0] font-heading bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400 leading-none mb-1">
+              LIFESIM
+            </h1>
+            <span className="text-[10px] font-mono text-gray-400 leading-none">
+              {formatDisplayDate(currentDate)}
+            </span>
+          </div>
           
           <div className="h-8 w-px bg-white/10 hidden md:block"></div>
           
+          {/* Desktop Date/Age Indicators */}
           <div className="hidden md:flex items-center gap-3 bg-[#131b2c] px-3 py-1.5 rounded-md border border-white/5 shadow-inner">
             <Calendar size={14} className="text-blue-400" />
             <span className="text-sm font-mono text-gray-200">{formatDisplayDate(currentDate)}</span>
@@ -262,12 +297,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Mobile Date - concise */}
-          <div className="md:hidden text-xs font-mono text-gray-400 mr-2">
-            {formatDisplayDate(currentDate)}
-          </div>
-
+        {/* Right Side: Controls */}
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+          
           <div className="flex bg-[#131b2c] p-1 rounded-md border border-white/5">
             {(['Day', 'Week', 'Month', 'Year'] as TimeStep[]).map((step) => (
               <button
@@ -285,14 +317,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
             ))}
           </div>
           <div className="w-px h-6 bg-white/10 mx-1 md:mx-2"></div>
-          <button className="p-2 bg-green-900/20 border border-green-500/30 rounded text-green-400 hover:bg-green-900/40 transition-colors">
+          <button 
+             onClick={onPlay}
+             disabled={isLoading}
+             className="p-2 bg-green-900/20 border border-green-500/30 rounded text-green-400 hover:bg-green-900/40 transition-colors disabled:opacity-50"
+             title={`Advance 1 ${timeStep}`}
+          >
              {isLoading ? <Pause size={16} className="animate-pulse"/> : <Play size={16} />}
           </button>
         </div>
       </header>
 
       {/* --- Main Content Grid --- */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 overflow-hidden relative">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-12 min-h-0 relative">
         
         {/* --- Left Sidebar: Profile & Vitals --- */}
         <aside className={`
@@ -342,20 +379,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          <div>
-             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Focus</h3>
-             <div className="p-4 rounded-lg bg-blue-900/10 border border-blue-500/20 text-sm text-blue-200">
-                <p className="leading-snug">
-                  {currentEvent?.description ? "Navigating life events." : "Waiting for destiny..."}
-                </p>
+          {/* Hidden Metrics Debug/Insight (Optional for user, good for "Ominous" feel if they see names) */}
+          {character.hiddenMetrics && Object.keys(character.hiddenMetrics).length > 0 && (
+             <div className="mb-8 opacity-60 hover:opacity-100 transition-opacity">
+               <h3 className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-2">Shadow Metrics</h3>
+               <div className="flex flex-wrap gap-2">
+                  {Object.entries(character.hiddenMetrics).map(([key, val]) => (
+                     <span key={key} className="text-[10px] px-2 py-1 bg-black/40 border border-white/5 rounded text-gray-400">
+                        {key.replace('_', ' ')}: {val}
+                     </span>
+                  ))}
+               </div>
              </div>
-          </div>
+          )}
         </aside>
 
         {/* --- Center: Timeline Feed --- */}
         <main className={`
-          md:flex md:col-span-6 flex-col bg-[#050914] relative h-full
-          ${mobileTab === 'feed' ? 'flex' : 'hidden'}
+          md:flex md:col-span-6 flex-col bg-[#050914] relative h-full min-h-0
+          ${mobileTab === 'feed' ? 'flex z-10 absolute inset-0 md:static' : 'hidden'}
         `}>
           
           {/* Feed */}
@@ -378,17 +420,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                </div>
             )}
+            
+            {/* Extra padding at bottom to ensure last item is visible above input area on mobile */}
+            <div className="h-24 md:h-0"></div>
           </div>
 
           {/* Action Area */}
-          <div className="p-4 md:p-6 bg-[#0B101B]/95 backdrop-blur-md border-t border-white/10 z-10 shadow-2xl absolute bottom-0 left-0 right-0 md:relative md:bottom-auto mb-[56px] md:mb-0">
+          <div className="flex-none p-4 md:p-6 bg-[#0B101B]/95 backdrop-blur-md border-t border-white/10 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] md:shadow-none absolute bottom-[56px] md:bottom-auto left-0 right-0 md:relative">
             {currentEvent?.choices && !isLoading && (
-              <div className="flex flex-wrap gap-2 mb-4 max-h-32 overflow-y-auto">
+              <div className="flex flex-wrap gap-2 mb-4 max-h-32 overflow-y-auto custom-scrollbar">
                 {currentEvent.choices.map((choice) => (
                   <button
                     key={choice.id}
                     onClick={() => onChoice(choice.id, choice.text)}
-                    className="px-4 py-2 bg-[#1a2333] hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/50 rounded-full text-xs text-gray-300 hover:text-white transition-all transform hover:scale-[1.02]"
+                    className="px-4 py-2 bg-[#1a2333] hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/50 rounded-full text-xs text-gray-300 hover:text-white transition-all transform hover:scale-[1.02] text-left"
                   >
                     {choice.text}
                   </button>
@@ -481,6 +526,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
          >
            <Globe size={20} />
            <span className="text-[10px] font-medium">World</span>
+         </button>
+
+         <button 
+           onClick={onToggleChat}
+           className={`flex flex-col items-center gap-1 p-2 ${isChatOpen ? 'text-purple-400' : 'text-gray-500'}`}
+         >
+           <MessageCircle size={20} />
+           <span className="text-[10px] font-medium">Assistant</span>
          </button>
       </div>
 

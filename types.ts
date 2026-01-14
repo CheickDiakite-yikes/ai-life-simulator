@@ -35,6 +35,8 @@ export interface Character {
   inventory: string[];
   relationships: { name: string; relation: string; status: string }[];
   statusEffects: string[]; // e.g., "Sick", "Married", "Superpowered"
+  // Hidden metrics for long-term consequence tracking (e.g., { "lung_damage": 15, "criminal_risk": 5 })
+  hiddenMetrics: Record<string, number>;
 }
 
 export interface LifeEvent {

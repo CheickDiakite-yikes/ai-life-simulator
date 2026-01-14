@@ -1,5 +1,5 @@
-import { GoogleGenAI, Type, FunctionDeclaration, Schema, Modality } from "@google/genai";
-import { Character, GameMode, LifeEvent, Choice, TimeStep } from "../types";
+import { GoogleGenAI, Type, Schema, Modality } from "@google/genai";
+import { Character, GameMode, LifeEvent, TimeStep } from "../types";
 
 // Helper to get client with current key
 const getClient = () => {
@@ -10,13 +10,68 @@ const getClient = () => {
   return new GoogleGenAI({ apiKey: apiKey || '' });
 };
 
+// --- Audio Helper: Raw PCM to WAV ---
+// The TTS model returns raw PCM. Browsers need a WAV header to play it via Blob URL.
+const addWavHeader = (samples: Uint8Array, sampleRate: number = 24000, numChannels: number = 1): ArrayBuffer => {
+  const buffer = new ArrayBuffer(44 + samples.length);
+  const view = new DataView(buffer);
+
+  const writeString = (view: DataView, offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+
+  /* RIFF identifier */
+  writeString(view, 0, 'RIFF');
+  /* RIFF chunk length */
+  view.setUint32(4, 36 + samples.length, true);
+  /* RIFF type */
+  writeString(view, 8, 'WAVE');
+  /* fmt sub-chunk */
+  writeString(view, 12, 'fmt ');
+  /* fmt chunk length */
+  view.setUint32(16, 16, true);
+  /* format (1 = PCM) */
+  view.setUint16(20, 1, true);
+  /* channels */
+  view.setUint16(22, numChannels, true);
+  /* sample rate */
+  view.setUint32(24, sampleRate, true);
+  /* byte rate */
+  view.setUint32(28, sampleRate * numChannels * 2, true);
+  /* block align */
+  view.setUint16(32, numChannels * 2, true);
+  /* bits per sample */
+  view.setUint16(34, 16, true);
+  /* data sub-chunk */
+  writeString(view, 36, 'data');
+  /* data chunk length */
+  view.setUint32(40, samples.length, true);
+
+  // Write the PCM samples
+  const pcmData = new Uint8Array(buffer, 44);
+  pcmData.set(samples);
+
+  return buffer;
+};
+
+const base64ToUint8Array = (base64: string): Uint8Array => {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+};
+
 // --- Initialization ---
 
 export const generateInitialCharacter = async (mode: GameMode, userInputs?: any): Promise<Character> => {
   const ai = getClient();
-  const isFantasy = mode === GameMode.ALTERNATIVE;
   
-  const systemInstruction = `You are the engine for 'Aetheria', a sociological life simulator used for research and education.
+  const systemInstruction = `You are the engine for 'Aetheria', a hyper-realistic life simulator.
   GOAL: Create a realistic, intersectional starting point for a human life.
   
   RULES:
@@ -25,8 +80,8 @@ export const generateInitialCharacter = async (mode: GameMode, userInputs?: any)
   3. WEALTH LOGIC: 
      - A newborn/child has $0 'personalWealth'. 
      - 'familyWealth' represents the parents' socioeconomic status. 
-     - In developing nations (e.g. Nigeria, India, Brazil), family wealth might be low in USD terms but average locally.
   4. INTERSECTIONALITY: Define ethnicity, gender, and location. These must impact the starting stats and bio.
+  5. HIDDEN METRICS: Initialize hidden tracking metrics relevant to the birth environment (e.g., 'pollution_exposure', 'malnutrition_risk').
   
   Mode: ${mode}.
   ${userInputs ? `User preferences: ${JSON.stringify(userInputs)}` : 'Start: Completely random.'}
@@ -68,7 +123,19 @@ export const generateInitialCharacter = async (mode: GameMode, userInputs?: any)
           }
         } 
       },
-      statusEffects: { type: Type.ARRAY, items: { type: Type.STRING } }
+      statusEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
+      hiddenMetrics: { 
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            value: { type: Type.NUMBER }
+          }
+        },
+        description: "List of invisible stats. E.g. [{name: 'pollution_exposure', value: 10}]",
+        nullable: true
+      }
     }
   };
 
@@ -83,7 +150,21 @@ export const generateInitialCharacter = async (mode: GameMode, userInputs?: any)
   });
 
   if (!response.text) throw new Error("Failed to generate character");
-  return JSON.parse(response.text) as Character;
+  
+  const rawChar = JSON.parse(response.text);
+  
+  // Convert array of metrics back to Record for application use
+  const metrics: Record<string, number> = {};
+  if (Array.isArray(rawChar.hiddenMetrics)) {
+    rawChar.hiddenMetrics.forEach((m: any) => {
+      if (m.name && typeof m.value === 'number') {
+        metrics[m.name] = m.value;
+      }
+    });
+  }
+  rawChar.hiddenMetrics = metrics;
+
+  return rawChar as Character;
 };
 
 // --- Main Game Loop (Thinking Mode) ---
@@ -98,37 +179,44 @@ export const advanceLife = async (
 ): Promise<{ character: Character; event: LifeEvent }> => {
   const ai = getClient();
   
+  // Construct a concise history summary for context
+  // We include previous choices to avoid repetition
+  const historySummary = previousEvent ? 
+    `Last Event Date: ${previousEvent.date}
+     Last Event: ${previousEvent.description}
+     User's Action: ${choiceMade || 'None (Time Passed)'}
+     Options available previously: ${JSON.stringify(previousEvent.choices?.map(c => c.text))}` 
+    : "Start of life.";
+
   const prompt = `
     Current Simulation Date: ${currentDate}
     Context:
     - Character: ${JSON.stringify(character)}
-    - Previous Event: ${previousEvent ? previousEvent.description : 'Birth'}
-    - User Decision (Cause): ${choiceMade || 'None/Passive'}
-    - Time Step: ${timeStep}
-    - Real World News/Context: ${realWorldContext}
+    - Recent History Summary: ${historySummary}
+    - User Decision (Cause): ${choiceMade || 'Passive existence / Time passing'}
+    - Time Step to Advance: ${timeStep}
+    - Real World News Context: ${realWorldContext}
 
-    INSTRUCTIONS FOR AI:
-    1. CALCULATE DATE: Add 1 ${timeStep} to ${currentDate}. Update Age.
+    INSTRUCTIONS:
+    1. TIME & NARRATIVE PACING (Crucial): 
+       - If Time Step is 'Year', DO NOT just describe a single day. Summarize the growth, developmental milestones, or major changes that happened *during* that year, then land the narrative on a specific, vivid moment on the new date.
+       - If Time Step is 'Day' or 'Week', focus on immediate sensory details and continuity from the last event.
+       - Advance the date and age accordingly.
     
-    2. SOCIOLOGICAL REALISM & INTERSECTIONALITY:
-       - Apply an intersectional lens (Gender + Ethnicity + Class + Location).
-       - Example: A wealthy man in Switzerland faces different risks than a poor woman in Lagos.
-       - Acknowledge systemic issues: misogyny, racism, economic instability, healthcare access.
-       - Do not shy away from negative outcomes. This is a simulation for research.
+    2. NARRATIVE FLOW:
+       - Write a visceral, realistic scenario. 
+       - Acknowledge the user's previous choice explicitly in how the new scenario unfolds (e.g., if they chose to sleep, describe waking up refreshed or still tired).
+       - END the description with a "Call to Action" or a specific situation that demands a reaction, setting up the choices.
     
-    3. CONSEQUENCE LOGIC:
-       - The 'User Decision' must directly influence the narrative.
-       - If the user made a bad financial decision, 'personalWealth' or 'familyWealth' should decrease.
-       - If the user ignored a health warning, 'health' should drop.
+    3. DYNAMIC CHOICES (Strict):
+       - Generate 3 distinct choices.
+       - DO NOT REPEAT previous choices (e.g., do not just say "Cry loudly" if the child is now 2 years old and walking). 
+       - Choices must be age-appropriate (e.g., a baby cries, a toddler throws a toy or babbles, a child speaks).
+       - Choices must be relevant to the *specific* event description generated.
     
-    4. WEALTH DYNAMICS:
-       - Children rely on 'familyWealth'. If 'familyWealth' hits 0, the child faces food insecurity/eviction.
-       - 'personalWealth' is pocket money/earnings.
-    
-    5. OUTPUT:
-       - Generate a visceral, sensory narrative.
-       - Generate a 'visualPrompt' for image generation.
-       - Generate 2-3 contextual news headlines (can be real-world based or lore based).
+    4. HIDDEN MECHANICS:
+       - Update 'hiddenMetrics' based on environment (pollution, poverty) and choices.
+       - Trigger 'major' events if thresholds are met.
     
     Return strict JSON.
   `;
@@ -161,7 +249,18 @@ export const advanceLife = async (
            },
            inventory: { type: Type.ARRAY, items: { type: Type.STRING } },
            relationships: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, relation: { type: Type.STRING }, status: { type: Type.STRING } } } },
-           statusEffects: { type: Type.ARRAY, items: { type: Type.STRING } }
+           statusEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
+           hiddenMetrics: { 
+             type: Type.ARRAY,
+             items: {
+               type: Type.OBJECT,
+               properties: {
+                 name: { type: Type.STRING },
+                 value: { type: Type.NUMBER }
+               }
+             },
+             description: "Updated hidden counters." 
+           }
         }
       },
       newEvent: {
@@ -169,7 +268,7 @@ export const advanceLife = async (
         properties: {
           year: { type: Type.NUMBER },
           date: { type: Type.STRING },
-          description: { type: Type.STRING, description: "Visceral narrative." },
+          description: { type: Type.STRING, description: "Visceral narrative ending with a situation requiring action." },
           visualPrompt: { type: Type.STRING },
           type: { type: Type.STRING, enum: ['neutral', 'positive', 'negative', 'major'] },
           news: {
@@ -189,7 +288,7 @@ export const advanceLife = async (
               type: Type.OBJECT,
               properties: {
                 id: { type: Type.STRING },
-                text: { type: Type.STRING },
+                text: { type: Type.STRING, description: "Age-appropriate, non-repetitive action." },
                 consequenceHint: { type: Type.STRING }
               }
             }
@@ -210,9 +309,25 @@ export const advanceLife = async (
   });
 
   const data = JSON.parse(response.text || '{}');
+  const rawUpdatedChar = data.updatedCharacter;
+  
+  // Convert array of metrics back to Record for application use
+  const metrics: Record<string, number> = {};
+  if (Array.isArray(rawUpdatedChar.hiddenMetrics)) {
+    rawUpdatedChar.hiddenMetrics.forEach((m: any) => {
+      if (m.name && typeof m.value === 'number') {
+        metrics[m.name] = m.value;
+      }
+    });
+  } else if (character.hiddenMetrics) {
+    // Keep old metrics if none returned or incorrect format
+    Object.assign(metrics, character.hiddenMetrics);
+  }
+  rawUpdatedChar.hiddenMetrics = metrics;
+
   return {
-    character: data.updatedCharacter,
-    event: { ...data.newEvent, selectedChoice: choiceMade } // Inject the choice made into the event object for logging
+    character: rawUpdatedChar as Character,
+    event: { ...data.newEvent, selectedChoice: choiceMade }
   };
 };
 
@@ -270,7 +385,6 @@ export const generateSceneImage = async (
 };
 
 export const generateSceneVideo = async (prompt: string, aspectRatio: "16:9" | "9:16"): Promise<string | null> => {
-  const ai = getClient();
   const freshAi = new GoogleGenAI({ apiKey: process.env.API_KEY || '' }); 
 
   try {
@@ -321,7 +435,13 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
 
     const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (base64Audio) {
-      return `data:audio/wav;base64,${base64Audio}`;
+      // Decode base64 to raw PCM
+      const pcmBytes = base64ToUint8Array(base64Audio);
+      // Add WAV header so simple <audio> elements can play it
+      const wavBuffer = addWavHeader(pcmBytes);
+      // Create Blob
+      const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+      return URL.createObjectURL(blob);
     }
     return null;
   } catch (e) {
