@@ -2,8 +2,9 @@ import { GoogleGenAI, Type, Schema, Modality } from "@google/genai";
 import { Character, GameMode, LifeEvent, NewsItem, TimeStep } from "../types";
 import { getRuntimeApiKey } from "./apiKey";
 import { logDebug, logError, logWarn, safeStringify } from "./logger";
-import { RecentStart, buildAvoidCountries, extractCountry, summarizeRecentStarts } from "./simulationMemory";
+import { RecentStart, buildAvoidCountries, extractCountry, matchesAvoidedCountry, summarizeRecentStarts } from "./simulationMemory";
 import { addTimeStep, calculateAge, isAfterOrEqual, isValidISODate } from "./timeUtils";
+import { applyStatAdjustments, normalizeAttributes } from "./statEngine";
 
 // Helper to get client with current key
 const getClient = () => {
@@ -82,10 +83,11 @@ export const generateInitialCharacter = async (
   const avoidCountries = buildAvoidCountries(recentStarts);
   const recentSummary = summarizeRecentStarts(recentStarts);
   const hasUserLocation = !!userInputs?.location;
-  const maxAttempts = hasUserLocation ? 1 : 3;
+  const maxAttempts = hasUserLocation ? 1 : 5;
+  const normalizeLocation = (location: string) => location.toLowerCase().replace(/\s+/g, ' ').trim();
   const recentLocations = new Set(
     recentStarts
-      .map((start) => start.location?.toLowerCase())
+      .map((start) => normalizeLocation(start.location || ''))
       .filter((location): location is string => !!location)
   );
 
@@ -146,7 +148,7 @@ export const generateInitialCharacter = async (
     const diversitySeed = Math.floor(Math.random() * 1_000_000_000);
     const diversityGuard = hasUserLocation
       ? 'User provided location; do not override.'
-      : `Avoid repeating recent starts. Recent starts to avoid: ${recentSummary}. Avoid these countries if possible: ${avoidCountries.join(', ') || 'None'}.`;
+      : `Avoid repeating recent starts. Recent starts to avoid: ${recentSummary}. Avoid these countries if possible: ${avoidCountries.join(', ') || 'None'}. If a country is in the avoid list, you MUST choose a different country. Prefer underrepresented regions if you keep landing in the same area.`;
 
     const systemInstruction = `You are the engine for 'Aetheria', a hyper-realistic life simulator.
     GOAL: Create a realistic, intersectional starting point for a human life.
@@ -228,12 +230,13 @@ export const generateInitialCharacter = async (
 
     const location = typeof rawChar.location === 'string' ? rawChar.location : '';
     const country = extractCountry(location);
-    const isRepeatLocation = location ? recentLocations.has(location.toLowerCase()) : false;
-    const isRepeatCountry = country ? avoidCountries.includes(country) : false;
+    const normalizedLocation = normalizeLocation(location);
+    const isRepeatLocation = normalizedLocation ? recentLocations.has(normalizedLocation) : false;
+    const isRepeatCountry = matchesAvoidedCountry(location, avoidCountries);
 
     lastCharacter = rawChar as Character;
 
-    if (!hasUserLocation && (isRepeatLocation || isRepeatCountry) && attempt < maxAttempts) {
+    if (!hasUserLocation && (!location || isRepeatLocation || isRepeatCountry) && attempt < maxAttempts) {
       logWarn('Retrying to avoid repeated location', { location, country, attempt });
       continue;
     }
@@ -303,6 +306,11 @@ export const advanceLife = async (
     4. HIDDEN MECHANICS:
        - Update 'hiddenMetrics' based on environment (pollution, poverty) and choices.
        - Trigger 'major' events if thresholds are met.
+
+    5. ATTRIBUTE UPDATES (Strict):
+       - Update character attributes to reflect the event and choice. Do not leave all stats unchanged.
+       - Keep health/happiness/intelligence/social/energy in the 0-100 range.
+       - Adjust personalWealth/familyWealth realistically based on circumstances.
     
     Return strict JSON.
   `;
@@ -419,9 +427,8 @@ export const advanceLife = async (
     rawEvent.type = 'neutral';
   }
 
-  if (!rawUpdatedChar.attributes) {
-    rawUpdatedChar.attributes = character.attributes;
-  }
+  rawUpdatedChar.attributes = normalizeAttributes(rawUpdatedChar.attributes, character.attributes);
+
   if (!Array.isArray(rawUpdatedChar.inventory)) {
     rawUpdatedChar.inventory = character.inventory || [];
   }
@@ -431,6 +438,15 @@ export const advanceLife = async (
   if (!Array.isArray(rawUpdatedChar.statusEffects)) {
     rawUpdatedChar.statusEffects = character.statusEffects || [];
   }
+
+  rawUpdatedChar.attributes = applyStatAdjustments({
+    attributes: rawUpdatedChar.attributes,
+    previousAttributes: character.attributes,
+    choiceText: choiceMade,
+    eventType: rawEvent.type,
+    timeStep,
+    description: rawEvent.description
+  });
 
   // Convert array of metrics back to Record for application use
   const metrics: Record<string, number> = {};
