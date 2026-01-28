@@ -3,7 +3,12 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import path from "path";
+import { fileURLToPath } from "url";
 import { storage } from "./storage";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
@@ -318,7 +323,16 @@ app.post("/api/messages", async (req, res) => {
   }
 });
 
-const PORT = 3000;
+const distPath = path.resolve(__dirname, "../dist");
+app.use(express.static(distPath));
+
+app.get("*", (req, res) => {
+  if (!req.path.startsWith("/api")) {
+    res.sendFile(path.join(distPath, "index.html"));
+  }
+});
+
+const PORT = parseInt(process.env.PORT || "5000", 10);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
   storage.deleteExpiredSessions().catch(() => {});
