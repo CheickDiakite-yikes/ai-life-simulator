@@ -38,8 +38,7 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const cardWidth = 200;
-      const scrollAmount = direction === 'left' ? -cardWidth : cardWidth;
+      const scrollAmount = direction === 'left' ? -320 : 320;
       scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -64,18 +63,20 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
   const getModeColor = (mode: string) => {
     switch (mode) {
       case GameMode.REAL_LIFE:
-        return 'bg-blue-900/50 text-blue-300 border-blue-700/50';
+        return 'bg-blue-900/60 text-blue-300 border-blue-700/50';
       case GameMode.FAKE:
-        return 'bg-emerald-900/50 text-emerald-300 border-emerald-700/50';
+        return 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50';
       case GameMode.ALTERNATIVE:
-        return 'bg-purple-900/50 text-purple-300 border-purple-700/50';
+        return 'bg-purple-900/60 text-purple-300 border-purple-700/50';
       default:
-        return 'bg-amber-900/50 text-amber-300 border-amber-700/50';
+        return 'bg-amber-900/60 text-amber-300 border-amber-700/50';
     }
   };
 
+  const needsScrolling = savedGames.length > 2;
+
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 mb-6 z-10">
+    <div className="w-full max-w-4xl mx-auto px-4 mb-6 z-10">
       <div className="flex items-center justify-center gap-3 mb-4">
         <div className="h-px w-8 bg-amber-600/30"></div>
         <h2 className="text-sm font-heading text-stone-400 uppercase tracking-widest">
@@ -85,31 +86,38 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
       </div>
       
       <div className="relative group/container">
-        {canScrollLeft && (
+        {needsScrolling && canScrollLeft && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-stone-900/90 backdrop-blur-sm border border-stone-700 rounded-full text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-all shadow-lg opacity-0 group-hover/container:opacity-100 md:opacity-100 -translate-x-1/2"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-stone-900/90 backdrop-blur-sm border border-stone-700 rounded-full text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-all shadow-lg -translate-x-1/2"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </button>
         )}
         
-        {canScrollRight && (
+        {needsScrolling && canScrollRight && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-stone-900/90 backdrop-blur-sm border border-stone-700 rounded-full text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-all shadow-lg opacity-0 group-hover/container:opacity-100 md:opacity-100 translate-x-1/2"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-20 p-2 bg-stone-900/90 backdrop-blur-sm border border-stone-700 rounded-full text-stone-300 hover:text-amber-400 hover:border-amber-700/50 transition-all shadow-lg translate-x-1/2"
           >
-            <ChevronRight size={20} />
+            <ChevronRight size={18} />
           </button>
         )}
 
-        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0c0a09] to-transparent pointer-events-none z-10 opacity-0 transition-opacity" style={{ opacity: canScrollLeft ? 1 : 0 }}></div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0c0a09] to-transparent pointer-events-none z-10 opacity-0 transition-opacity" style={{ opacity: canScrollRight ? 1 : 0 }}></div>
+        {needsScrolling && (
+          <>
+            <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-[#0c0a09] to-transparent pointer-events-none z-10 transition-opacity" style={{ opacity: canScrollLeft ? 1 : 0 }}></div>
+            <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-[#0c0a09] to-transparent pointer-events-none z-10 transition-opacity" style={{ opacity: canScrollRight ? 1 : 0 }}></div>
+          </>
+        )}
         
         <div
           ref={scrollContainerRef}
           onScroll={updateScrollButtons}
-          className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 px-1 snap-x snap-mandatory"
+          className={`
+            flex gap-3 pb-2
+            ${needsScrolling ? 'overflow-x-auto snap-x snap-mandatory' : 'flex-wrap justify-center'}
+          `}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {savedGames.map((save, index) => {
@@ -122,87 +130,89 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
               <div
                 key={save.id}
                 className={`
-                  group relative flex-shrink-0 w-[180px] sm:w-[200px] snap-start
-                  bg-stone-900/80 backdrop-blur-sm border rounded-xl overflow-hidden
-                  transition-all duration-300 hover:scale-[1.02] hover:shadow-xl
-                  ${isRecent ? 'border-amber-600/50 ring-1 ring-amber-500/20' : 'border-stone-700/50 hover:border-amber-700/50'}
+                  group relative snap-start
+                  bg-stone-900/80 backdrop-blur-sm border rounded-lg overflow-hidden
+                  transition-all duration-300 hover:border-amber-600/60
+                  ${needsScrolling ? 'flex-shrink-0 w-[300px] sm:w-[340px]' : 'flex-1 min-w-[280px] max-w-[400px]'}
+                  ${isRecent ? 'border-amber-600/50' : 'border-stone-700/50'}
                 `}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-900/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                
                 {isRecent && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600"></div>
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600"></div>
                 )}
                 
-                <div className="relative z-10 p-4">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-stone-800 border border-stone-600 flex items-center justify-center text-lg font-heading text-stone-300 shadow-inner">
+                <div className="p-3 sm:p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-full bg-stone-800 border-2 border-stone-600 flex items-center justify-center text-lg font-heading text-stone-300 shadow-inner flex-shrink-0">
                       {character.name?.charAt(0) || '?'}
                     </div>
                     
-                    <div className="flex items-center gap-1">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-heading tracking-wider border ${getModeColor(save.mode)}`}>
-                        {getModeLabel(save.mode)}
-                      </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="text-sm font-semibold text-stone-200 truncate font-heading">
+                          {character.name || 'Unknown'}
+                        </h3>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-heading tracking-wider border flex-shrink-0 ${getModeColor(save.mode)}`}>
+                          {getModeLabel(save.mode)}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-[10px] text-stone-500">
+                        {character.age !== undefined && (
+                          <span>Age {character.age}</span>
+                        )}
+                        {character.location && (
+                          <>
+                            <span className="text-stone-700">•</span>
+                            <span className="flex items-center gap-1 truncate">
+                              <MapPin size={9} className="flex-shrink-0" />
+                              <span className="truncate">{character.location.split(',')[0]}</span>
+                            </span>
+                          </>
+                        )}
+                        <span className="text-stone-700">•</span>
+                        <span className="flex items-center gap-1 flex-shrink-0">
+                          <Clock size={9} />
+                          {formatSaveDate(save.updatedAt)}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => onLoadGame(save.id)}
+                        disabled={isLoading}
+                        className={`
+                          px-4 py-2 rounded-lg text-xs font-heading tracking-wide transition-all 
+                          disabled:opacity-50 flex items-center gap-2
+                          ${isRecent 
+                            ? 'bg-amber-700/80 hover:bg-amber-600 border border-amber-600/50 text-amber-100' 
+                            : 'bg-stone-800 hover:bg-amber-900/50 border border-stone-700 hover:border-amber-700/50 text-stone-300 hover:text-amber-200'
+                          }
+                        `}
+                      >
+                        {isLoadingThis ? (
+                          <>
+                            <Loader2 size={12} className="animate-spin" />
+                            <span className="hidden sm:inline">Loading</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play size={10} fill="currentColor" />
+                            {isRecent ? 'Resume' : 'Continue'}
+                          </>
+                        )}
+                      </button>
+                      
                       <button
                         onClick={(e) => { e.stopPropagation(); onDeleteGame(save.id); }}
-                        className="p-1 text-stone-600 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                        className="p-2 text-stone-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors opacity-60 hover:opacity-100"
                         title="Delete save"
                       >
-                        <Trash2 size={12} />
+                        <Trash2 size={14} />
                       </button>
                     </div>
                   </div>
-                  
-                  <h3 className="text-sm font-semibold text-stone-200 truncate font-heading mb-1">
-                    {character.name || 'Unknown'}
-                  </h3>
-                  
-                  <div className="flex items-center gap-2 text-[10px] text-stone-500 mb-1">
-                    {character.age !== undefined && (
-                      <span className="px-1.5 py-0.5 bg-stone-800/80 rounded text-stone-400">
-                        Age {character.age}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="flex flex-col gap-1 text-[10px] text-stone-500 mb-3">
-                    {character.location && (
-                      <span className="flex items-center gap-1 truncate">
-                        <MapPin size={9} className="flex-shrink-0 text-stone-600" />
-                        <span className="truncate">{character.location.split(',')[0]}</span>
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Clock size={9} className="flex-shrink-0 text-stone-600" />
-                      {formatSaveDate(save.updatedAt)}
-                    </span>
-                  </div>
-                  
-                  <button
-                    onClick={() => onLoadGame(save.id)}
-                    disabled={isLoading}
-                    className={`
-                      w-full py-2 rounded-lg text-xs font-heading tracking-wide transition-all 
-                      disabled:opacity-50 flex items-center justify-center gap-2
-                      ${isRecent 
-                        ? 'bg-amber-700/80 hover:bg-amber-600/80 border border-amber-600/50 text-amber-100' 
-                        : 'bg-stone-800/80 hover:bg-amber-900/50 border border-stone-700/50 hover:border-amber-700/50 text-stone-300 hover:text-amber-200'
-                      }
-                    `}
-                  >
-                    {isLoadingThis ? (
-                      <>
-                        <Loader2 size={12} className="animate-spin" />
-                        Loading...
-                      </>
-                    ) : (
-                      <>
-                        <Play size={10} fill="currentColor" />
-                        {isRecent ? 'Resume' : 'Continue'}
-                      </>
-                    )}
-                  </button>
                 </div>
               </div>
             );
@@ -210,10 +220,9 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
         </div>
       </div>
       
-      {savedGames.length > 1 && (
-        <p className="text-center text-[10px] text-stone-600 mt-3 font-serif italic">
-          {savedGames.length} saved {savedGames.length === 1 ? 'journey' : 'journeys'} 
-          <span className="hidden sm:inline"> - scroll to see more</span>
+      {savedGames.length > 2 && (
+        <p className="text-center text-[10px] text-stone-600 mt-2 font-serif italic sm:hidden">
+          Swipe to see more
         </p>
       )}
     </div>
