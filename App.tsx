@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameMode, Character, GameState, LifeEvent, TimeStep } from './types';
 import { generateInitialCharacter, advanceLife, getRealWorldContext } from './services/geminiLoader';
 import { Dashboard } from './components/Dashboard';
@@ -6,10 +6,12 @@ import { GreekBackground } from './components/GreekBackground';
 import { StarBackground } from './components/StarBackground';
 import { ChatInterface } from './components/ChatInterface';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { SavedGamesSection } from './components/SavedGamesSection';
 import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, Sparkles, MapPin, User, Scroll } from 'lucide-react';
 import { clearStoredApiKey } from './services/apiKey';
 import { addRecentStart, getRecentStarts } from './services/simulationMemory';
 import { logDebug, logError, logWarn } from './services/logger';
+import { saveGame, loadSavedGames, loadGame, deleteSavedGame, SavedGame } from './services/saveGameService';
 
 const App: React.FC = () => {
   const [apiKeyReady, setApiKeyReady] = useState(false);
@@ -26,6 +28,12 @@ const App: React.FC = () => {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
+  // Saved Games State
+  const [savedGames, setSavedGames] = useState<SavedGame[]>([]);
+  const [currentSaveId, setCurrentSaveId] = useState<number | null>(null);
+  const [loadingGameId, setLoadingGameId] = useState<number | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const [gameState, setGameState] = useState<GameState>({
     character: {} as Character,
     history: [],
@@ -38,6 +46,46 @@ const App: React.FC = () => {
   });
 
   const [customInputs, setCustomInputs] = useState({ name: '', location: '' });
+
+  // Load saved games on mount
+  useEffect(() => {
+    const fetchSavedGames = async () => {
+      try {
+        const games = await loadSavedGames();
+        setSavedGames(games);
+      } catch (err) {
+        logError('Failed to load saved games', err);
+      }
+    };
+    fetchSavedGames();
+  }, []);
+
+  // Auto-save when game state changes (debounced)
+  useEffect(() => {
+    if (!gameStarted || !gameState.character?.name) return;
+    
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const saved = await saveGame(gameState, currentSaveId || undefined);
+        if (!currentSaveId) {
+          setCurrentSaveId(saved.id);
+        }
+        logDebug('Auto-saved game', { saveId: saved.id });
+      } catch (err) {
+        logError('Auto-save failed', err);
+      }
+    }, 2000);
+    
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [gameState.character, gameState.currentEvent, gameState.history.length, gameStarted]);
 
   const modes = [
     {
@@ -194,6 +242,36 @@ const App: React.FC = () => {
   const handleTimeStepChange = (step: TimeStep) => {
     logDebug('Time step changed', { from: gameState.timeStep, to: step });
     setGameState(prev => ({ ...prev, timeStep: step }));
+  };
+
+  const handleLoadGame = async (saveId: number) => {
+    setLoadingGameId(saveId);
+    setError(null);
+    try {
+      const loadedState = await loadGame(saveId);
+      if (loadedState) {
+        setGameState(loadedState);
+        setCurrentSaveId(saveId);
+        setGameStarted(true);
+        logDebug('Loaded saved game', { saveId, characterName: loadedState.character?.name });
+      } else {
+        setError('Failed to load saved game. The save may be corrupted.');
+      }
+    } catch (err) {
+      handleApiError(err);
+    } finally {
+      setLoadingGameId(null);
+    }
+  };
+
+  const handleDeleteGame = async (saveId: number) => {
+    try {
+      await deleteSavedGame(saveId);
+      setSavedGames(prev => prev.filter(g => g.id !== saveId));
+      logDebug('Deleted saved game', { saveId });
+    } catch (err) {
+      logError('Failed to delete saved game', err);
+    }
   };
 
   const nextMode = () => {
@@ -397,6 +475,17 @@ const App: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* Saved Games Section */}
+        {savedGames.length > 0 && (
+          <SavedGamesSection
+            savedGames={savedGames}
+            onLoadGame={handleLoadGame}
+            onDeleteGame={handleDeleteGame}
+            isLoading={loadingGameId !== null}
+            loadingGameId={loadingGameId}
+          />
+        )}
 
         {/* Footer / Indicators */}
         <div className="flex-none pb-8 md:pb-12 z-10 flex flex-col items-center gap-4">
