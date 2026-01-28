@@ -99,7 +99,7 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event,
       {event.selectedChoice && (
         <div className="flex gap-4 opacity-80">
            <div className="flex flex-col items-center w-6"></div>
-           <div className="flex-1 max-w-2xl">
+           <div className="flex-1 max-w-full md:max-w-2xl overflow-hidden">
              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-800/50 border border-amber-900/30 text-xs text-amber-200/80 font-serif italic">
                <CheckCircle2 size={12} className="text-amber-500"/>
                <span>You decided: <strong>{event.selectedChoice}</strong></span>
@@ -118,7 +118,7 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event,
           }`}></div>
           <div className="w-px h-full bg-stone-700 my-2"></div>
         </div>
-        <div className="flex-1 pb-8 max-w-2xl">
+        <div className="flex-1 pb-8 max-w-full md:max-w-2xl overflow-hidden">
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-heading tracking-widest text-stone-500">{formatDisplayDate(event.date)}</span>
@@ -135,7 +135,7 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event,
             </span>
           </div>
           
-          <div className="bg-[#1c1917] border border-stone-700/50 p-6 rounded-sm shadow-md group hover:border-amber-700/30 transition-colors relative overflow-hidden">
+          <div className="bg-[#1c1917] border border-stone-700/50 p-4 sm:p-6 rounded-sm shadow-md group hover:border-amber-700/30 transition-colors relative overflow-hidden">
             {/* Corner decorations */}
             <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-stone-500 opacity-30"></div>
             <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-stone-500 opacity-30"></div>
@@ -145,7 +145,7 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event,
             <h4 className="text-sm font-bold text-stone-300 mb-3 font-heading uppercase tracking-wide flex items-center gap-2">
               <Scroll size={14} className="text-amber-700" /> Chronicle Entry
             </h4>
-            <p className="text-base text-stone-300 leading-relaxed whitespace-pre-line font-serif">{event.description}</p>
+            <p className="text-sm sm:text-base text-stone-300 leading-relaxed whitespace-pre-line font-serif break-words">{event.description}</p>
             
             {/* Media Display */}
             <div className="mt-4">
@@ -167,32 +167,32 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event,
             </div>
 
             {/* Media Controls */}
-            <div className="flex gap-2 mt-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity border-t border-stone-800 pt-4">
+            <div className="flex flex-wrap gap-2 mt-4 sm:mt-6 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity border-t border-stone-800 pt-3 sm:pt-4">
                <button 
                  onClick={handleGenImage} 
                  disabled={!!imgUrl || !!loadingMedia}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-sm text-xs border border-stone-600 disabled:opacity-50 transition-all font-heading tracking-wider"
+                 className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-sm text-[10px] sm:text-xs border border-stone-600 disabled:opacity-50 transition-all font-heading tracking-wide sm:tracking-wider"
                  title="Visualize Scene (Image)"
                >
-                 <Camera size={12} /> {imgUrl ? 'Visualized' : 'Visualize'}
+                 <Camera size={10} className="sm:w-3 sm:h-3" /> {imgUrl ? 'Visualized' : 'Visualize'}
                </button>
                
                <button 
                  onClick={handleGenVideo} 
                  disabled={!!vidUrl || !!loadingMedia}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-sm text-xs border border-stone-600 disabled:opacity-50 transition-all font-heading tracking-wider"
+                 className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-sm text-[10px] sm:text-xs border border-stone-600 disabled:opacity-50 transition-all font-heading tracking-wide sm:tracking-wider"
                  title="Animate Scene (Video)"
                >
-                 <Video size={12} /> {vidUrl ? 'Animated' : 'Animate'}
+                 <Video size={10} className="sm:w-3 sm:h-3" /> {vidUrl ? 'Animated' : 'Animate'}
                </button>
 
                <button 
                  onClick={handleGenAudio}
                  disabled={loadingMedia === 'audio'}
-                 className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-sm text-xs border border-stone-600 disabled:opacity-50 transition-all font-heading tracking-wider"
+                 className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-sm text-[10px] sm:text-xs border border-stone-600 disabled:opacity-50 transition-all font-heading tracking-wide sm:tracking-wider"
                  title="Narrate Event"
                >
-                 <Volume2 size={12} /> {audioUrl ? 'Replay' : 'Narrate'}
+                 <Volume2 size={10} className="sm:w-3 sm:h-3" /> {audioUrl ? 'Replay' : 'Narrate'}
                </button>
             </div>
           </div>
@@ -275,13 +275,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 bg-[#0c0a09] text-stone-200 flex flex-col font-serif">
+    <div className="fixed inset-0 bg-[#0c0a09] text-stone-200 flex flex-col font-serif overflow-x-hidden">
       
       {/* --- Header --- */}
-      <header className="h-16 border-b border-stone-800 flex items-center justify-between px-4 md:px-6 bg-[#1c1917] shrink-0 z-20 shadow-lg">
+      <header className="h-16 border-b border-stone-800 flex items-center justify-between px-2 sm:px-4 md:px-6 bg-[#1c1917] shrink-0 z-20 shadow-lg overflow-hidden">
         
         {/* Left Side: Title & Date */}
-        <div className="flex items-center gap-4 md:gap-6 flex-shrink-1 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink min-w-0">
           
           {/* Desktop Title */}
           <h1 className="hidden md:block text-xl font-bold tracking-[0.2em] text-amber-500 font-heading drop-shadow-sm">
@@ -289,8 +289,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </h1>
 
           {/* Mobile Title & Date Stacked */}
-          <div className="md:hidden flex flex-col justify-center">
-             <h1 className="text-lg font-bold tracking-wider text-amber-500 font-heading leading-none mb-1">
+          <div className="md:hidden flex flex-col justify-center flex-shrink-0">
+             <h1 className="text-base sm:text-lg font-bold tracking-wider text-amber-500 font-heading leading-none mb-1">
               LIFESIM
             </h1>
             <span className="text-[10px] font-mono text-stone-500 leading-none">
@@ -313,32 +313,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Right Side: Controls */}
-        <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-1 sm:ml-2">
           
-          <div className="flex bg-[#292524] p-1 rounded-sm border border-stone-700">
+          <div className="flex bg-[#292524] p-0.5 sm:p-1 rounded-sm border border-stone-700">
             {(['Day', 'Week', 'Month', 'Year'] as TimeStep[]).map((step) => (
               <button
                 key={step}
                 onClick={() => onTimeStepChange(step)}
                 disabled={isLoading}
-                className={`px-2 md:px-3 py-1 text-[10px] md:text-xs font-bold font-heading tracking-wider rounded-sm transition-colors ${
+                className={`px-1.5 sm:px-2 md:px-3 py-1 text-[9px] sm:text-[10px] md:text-xs font-bold font-heading tracking-wide sm:tracking-wider rounded-sm transition-colors ${
                   timeStep === step 
                     ? 'bg-amber-800 text-amber-100 shadow-sm' 
                     : 'text-stone-500 hover:text-stone-300 hover:bg-stone-700'
                 }`}
               >
-                {step.charAt(0).toUpperCase() + step.slice(1)} {/* Capitalize first letter */}
+                {step}
               </button>
             ))}
           </div>
-          <div className="w-px h-6 bg-stone-700 mx-1 md:mx-2"></div>
+          <div className="w-px h-6 bg-stone-700 mx-0.5 sm:mx-1 md:mx-2"></div>
           <button 
              onClick={onPlay}
              disabled={isLoading}
-             className="p-2 bg-emerald-900/30 border border-emerald-700/50 rounded-sm text-emerald-500 hover:bg-emerald-900/50 transition-colors disabled:opacity-50"
+             className="p-1.5 sm:p-2 bg-emerald-900/30 border border-emerald-700/50 rounded-sm text-emerald-500 hover:bg-emerald-900/50 transition-colors disabled:opacity-50"
              title={`Advance 1 ${timeStep}`}
            >
-             {isLoading ? <Pause size={16} className="animate-pulse"/> : <Play size={16} />}
+             {isLoading ? <Pause size={14} className="sm:w-4 sm:h-4 animate-pulse"/> : <Play size={14} className="sm:w-4 sm:h-4" />}
           </button>
         </div>
       </header>
@@ -414,7 +414,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         `}>
           
           {/* Feed */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-8 scroll-smooth custom-scrollbar pb-32 md:pb-8" ref={scrollRef}>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-8 space-y-6 sm:space-y-8 scroll-smooth custom-scrollbar pb-32 md:pb-8" ref={scrollRef}>
             {/* Render history */}
             {history.map((event, idx) => (
               <EventCard key={idx} event={event} />
@@ -443,14 +443,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
 
           {/* Action Area */}
-          <div className="flex-none p-4 md:p-6 bg-[#1c1917]/95 backdrop-blur-md border-t border-stone-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] md:shadow-none absolute bottom-[56px] md:bottom-auto left-0 right-0 md:relative">
+          <div className="flex-none p-3 sm:p-4 md:p-6 bg-[#1c1917]/95 backdrop-blur-md border-t border-stone-800 z-20 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] md:shadow-none absolute bottom-[56px] md:bottom-auto left-0 right-0 md:relative">
             {currentEvent?.choices && !isLoading && (
-              <div className="flex flex-wrap gap-2 mb-4 max-h-32 overflow-y-auto custom-scrollbar">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4 max-h-28 sm:max-h-32 overflow-y-auto custom-scrollbar">
                 {currentEvent.choices.map((choice) => (
                   <button
                     key={choice.id}
                     onClick={() => onChoice(choice.id, choice.text)}
-                    className="px-4 py-2 bg-[#292524] hover:bg-amber-900/30 border border-stone-600 hover:border-amber-600/50 rounded-full text-xs text-stone-300 hover:text-amber-100 transition-all transform hover:scale-[1.02] text-left font-serif"
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#292524] hover:bg-amber-900/30 border border-stone-600 hover:border-amber-600/50 rounded-full text-[11px] sm:text-xs text-stone-300 hover:text-amber-100 transition-all transform hover:scale-[1.02] text-left font-serif"
                   >
                     {choice.text}
                   </button>
@@ -466,7 +466,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && handleCustomAction()}
                 placeholder="What is your will?" 
                 disabled={isLoading}
-                className="w-full bg-[#0c0a09] border border-stone-700 rounded-sm pl-4 pr-12 py-3 text-sm text-stone-200 focus:border-amber-700 focus:outline-none placeholder-stone-700 transition-all focus:bg-[#1c1917] font-serif"
+                className="w-full bg-[#0c0a09] border border-stone-700 rounded-sm pl-3 sm:pl-4 pr-10 sm:pr-12 py-2.5 sm:py-3 text-sm text-stone-200 focus:border-amber-700 focus:outline-none placeholder-stone-700 transition-all focus:bg-[#1c1917] font-serif"
               />
               <button 
                 onClick={handleCustomAction}
