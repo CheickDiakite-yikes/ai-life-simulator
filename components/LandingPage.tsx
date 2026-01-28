@@ -90,7 +90,7 @@ const FloatingOrb: React.FC<{ className?: string; delay?: number }> = ({ classNa
 
 const ScrollCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`relative ${className}`}>
-    <svg viewBox="0 0 200 280" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+    <svg viewBox="0 0 200 320" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
       <defs>
         <linearGradient id="parchment" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#44403c" />
@@ -120,38 +120,35 @@ const ScrollCard: React.FC<{ children: React.ReactNode; className?: string }> = 
         </linearGradient>
       </defs>
       
-      <rect x="15" y="30" width="170" height="220" fill="url(#parchment)" />
-      <rect x="15" y="30" width="170" height="15" fill="url(#rollShadow)" />
-      <rect x="15" y="235" width="170" height="15" fill="url(#rollShadow)" transform="rotate(180 100 242.5)" />
+      <rect x="10" y="22" width="180" height="276" fill="url(#parchment)" />
+      <rect x="10" y="22" width="180" height="12" fill="url(#rollShadow)" />
+      <rect x="10" y="286" width="180" height="12" fill="url(#rollShadow)" transform="rotate(180 100 292)" />
       
-      <rect x="0" y="8" width="200" height="28" rx="14" fill="url(#rollTop)" />
-      <rect x="0" y="8" width="200" height="14" rx="7" fill="url(#rollHighlight)" />
-      <rect x="5" y="20" width="190" height="4" fill="#292524" opacity="0.5" />
+      <rect x="0" y="4" width="200" height="22" rx="11" fill="url(#rollTop)" />
+      <rect x="0" y="4" width="200" height="11" rx="5.5" fill="url(#rollHighlight)" />
+      <rect x="5" y="14" width="190" height="3" fill="#292524" opacity="0.5" />
       
-      <rect x="0" y="244" width="200" height="28" rx="14" fill="url(#rollTop)" />
-      <rect x="0" y="244" width="200" height="14" rx="7" fill="url(#rollHighlight)" />
-      <rect x="5" y="256" width="190" height="4" fill="#292524" opacity="0.5" />
+      <rect x="0" y="294" width="200" height="22" rx="11" fill="url(#rollTop)" />
+      <rect x="0" y="294" width="200" height="11" rx="5.5" fill="url(#rollHighlight)" />
+      <rect x="5" y="304" width="190" height="3" fill="#292524" opacity="0.5" />
       
-      <circle cx="8" cy="22" r="6" fill="#57534e" />
-      <circle cx="8" cy="22" r="4" fill="url(#goldAccent)" />
-      <circle cx="8" cy="22" r="2" fill="#fbbf24" opacity="0.6" />
+      <circle cx="6" cy="15" r="5" fill="#57534e" />
+      <circle cx="6" cy="15" r="3.5" fill="url(#goldAccent)" />
+      <circle cx="6" cy="15" r="1.5" fill="#fbbf24" opacity="0.6" />
       
-      <circle cx="192" cy="22" r="6" fill="#57534e" />
-      <circle cx="192" cy="22" r="4" fill="url(#goldAccent)" />
-      <circle cx="192" cy="22" r="2" fill="#fbbf24" opacity="0.6" />
+      <circle cx="194" cy="15" r="5" fill="#57534e" />
+      <circle cx="194" cy="15" r="3.5" fill="url(#goldAccent)" />
+      <circle cx="194" cy="15" r="1.5" fill="#fbbf24" opacity="0.6" />
       
-      <circle cx="8" cy="258" r="6" fill="#57534e" />
-      <circle cx="8" cy="258" r="4" fill="url(#goldAccent)" />
-      <circle cx="8" cy="258" r="2" fill="#fbbf24" opacity="0.6" />
+      <circle cx="6" cy="305" r="5" fill="#57534e" />
+      <circle cx="6" cy="305" r="3.5" fill="url(#goldAccent)" />
+      <circle cx="6" cy="305" r="1.5" fill="#fbbf24" opacity="0.6" />
       
-      <circle cx="192" cy="258" r="6" fill="#57534e" />
-      <circle cx="192" cy="258" r="4" fill="url(#goldAccent)" />
-      <circle cx="192" cy="258" r="2" fill="#fbbf24" opacity="0.6" />
-      
-      <line x1="15" y1="36" x2="185" y2="36" stroke="#b45309" strokeOpacity="0.2" strokeWidth="0.5" />
-      <line x1="15" y1="244" x2="185" y2="244" stroke="#b45309" strokeOpacity="0.2" strokeWidth="0.5" />
+      <circle cx="194" cy="305" r="5" fill="#57534e" />
+      <circle cx="194" cy="305" r="3.5" fill="url(#goldAccent)" />
+      <circle cx="194" cy="305" r="1.5" fill="#fbbf24" opacity="0.6" />
     </svg>
-    <div className="relative z-10 pt-14 pb-14 px-6">
+    <div className="relative z-10 pt-10 pb-10 px-8">
       {children}
     </div>
   </div>
