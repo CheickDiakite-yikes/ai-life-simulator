@@ -90,36 +90,68 @@ const FloatingOrb: React.FC<{ className?: string; delay?: number }> = ({ classNa
 
 const ScrollCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
   <div className={`relative ${className}`}>
-    <svg viewBox="0 0 280 400" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+    <svg viewBox="0 0 200 280" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
       <defs>
-        <linearGradient id="scrollParchment" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#292524" />
-          <stop offset="50%" stopColor="#1c1917" />
-          <stop offset="100%" stopColor="#0c0a09" />
-        </linearGradient>
-        <linearGradient id="scrollEdge" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#b45309" stopOpacity="0.4" />
-          <stop offset="50%" stopColor="#d97706" stopOpacity="0.6" />
-          <stop offset="100%" stopColor="#b45309" stopOpacity="0.4" />
-        </linearGradient>
-        <linearGradient id="scrollRoll" x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id="parchment" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#44403c" />
-          <stop offset="30%" stopColor="#292524" />
-          <stop offset="70%" stopColor="#1c1917" />
+          <stop offset="5%" stopColor="#292524" />
+          <stop offset="95%" stopColor="#292524" />
           <stop offset="100%" stopColor="#44403c" />
         </linearGradient>
+        <linearGradient id="rollTop" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#78716c" />
+          <stop offset="20%" stopColor="#57534e" />
+          <stop offset="50%" stopColor="#44403c" />
+          <stop offset="80%" stopColor="#57534e" />
+          <stop offset="100%" stopColor="#78716c" />
+        </linearGradient>
+        <linearGradient id="rollShadow" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#0c0a09" stopOpacity="0.8" />
+          <stop offset="100%" stopColor="#0c0a09" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="rollHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#a8a29e" stopOpacity="0.3" />
+          <stop offset="50%" stopColor="#a8a29e" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#92400e" />
+          <stop offset="50%" stopColor="#b45309" />
+          <stop offset="100%" stopColor="#92400e" />
+        </linearGradient>
       </defs>
-      <ellipse cx="140" cy="25" rx="130" ry="25" fill="url(#scrollRoll)" />
-      <rect x="10" y="25" width="260" height="350" fill="url(#scrollParchment)" />
-      <ellipse cx="140" cy="375" rx="130" ry="25" fill="url(#scrollRoll)" />
-      <ellipse cx="140" cy="25" rx="130" ry="25" fill="none" stroke="url(#scrollEdge)" strokeWidth="1.5" />
-      <ellipse cx="140" cy="375" rx="130" ry="25" fill="none" stroke="url(#scrollEdge)" strokeWidth="1.5" />
-      <line x1="10" y1="25" x2="10" y2="375" stroke="#b45309" strokeOpacity="0.3" strokeWidth="1" />
-      <line x1="270" y1="25" x2="270" y2="375" stroke="#b45309" strokeOpacity="0.3" strokeWidth="1" />
-      <ellipse cx="140" cy="25" rx="110" ry="15" fill="none" stroke="#78716c" strokeOpacity="0.2" strokeWidth="0.5" />
-      <ellipse cx="140" cy="375" rx="110" ry="15" fill="none" stroke="#78716c" strokeOpacity="0.2" strokeWidth="0.5" />
+      
+      <rect x="15" y="30" width="170" height="220" fill="url(#parchment)" />
+      <rect x="15" y="30" width="170" height="15" fill="url(#rollShadow)" />
+      <rect x="15" y="235" width="170" height="15" fill="url(#rollShadow)" transform="rotate(180 100 242.5)" />
+      
+      <rect x="0" y="8" width="200" height="28" rx="14" fill="url(#rollTop)" />
+      <rect x="0" y="8" width="200" height="14" rx="7" fill="url(#rollHighlight)" />
+      <rect x="5" y="20" width="190" height="4" fill="#292524" opacity="0.5" />
+      
+      <rect x="0" y="244" width="200" height="28" rx="14" fill="url(#rollTop)" />
+      <rect x="0" y="244" width="200" height="14" rx="7" fill="url(#rollHighlight)" />
+      <rect x="5" y="256" width="190" height="4" fill="#292524" opacity="0.5" />
+      
+      <circle cx="8" cy="22" r="6" fill="#57534e" />
+      <circle cx="8" cy="22" r="4" fill="url(#goldAccent)" />
+      <circle cx="8" cy="22" r="2" fill="#fbbf24" opacity="0.6" />
+      
+      <circle cx="192" cy="22" r="6" fill="#57534e" />
+      <circle cx="192" cy="22" r="4" fill="url(#goldAccent)" />
+      <circle cx="192" cy="22" r="2" fill="#fbbf24" opacity="0.6" />
+      
+      <circle cx="8" cy="258" r="6" fill="#57534e" />
+      <circle cx="8" cy="258" r="4" fill="url(#goldAccent)" />
+      <circle cx="8" cy="258" r="2" fill="#fbbf24" opacity="0.6" />
+      
+      <circle cx="192" cy="258" r="6" fill="#57534e" />
+      <circle cx="192" cy="258" r="4" fill="url(#goldAccent)" />
+      <circle cx="192" cy="258" r="2" fill="#fbbf24" opacity="0.6" />
+      
+      <line x1="15" y1="36" x2="185" y2="36" stroke="#b45309" strokeOpacity="0.2" strokeWidth="0.5" />
+      <line x1="15" y1="244" x2="185" y2="244" stroke="#b45309" strokeOpacity="0.2" strokeWidth="0.5" />
     </svg>
-    <div className="relative z-10 pt-12 pb-12 px-8">
+    <div className="relative z-10 pt-14 pb-14 px-6">
       {children}
     </div>
   </div>
