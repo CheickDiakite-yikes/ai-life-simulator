@@ -11,7 +11,16 @@ export const ApiKeyModal: React.FC<{ onReady: () => void; forceSelection?: boole
       return;
     }
 
-    // Cast to any to safely access the injected aistudio property
+    // First check if API key is available via environment variable (Replit secrets)
+    const envApiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+    if (envApiKey && envApiKey.length > 0) {
+      setHasKey(true);
+      onReady();
+      setLoading(false);
+      return;
+    }
+
+    // Fallback: Cast to any to safely access the injected aistudio property (Google AI Studio sandbox)
     const aistudio = (window as any).aistudio;
     if (aistudio) {
       const selected = await aistudio.hasSelectedApiKey();
@@ -38,7 +47,6 @@ export const ApiKeyModal: React.FC<{ onReady: () => void; forceSelection?: boole
         onReady();
       } catch (e) {
         console.error("Key selection failed", e);
-        // Fallback or retry logic could go here
       }
     }
   };
