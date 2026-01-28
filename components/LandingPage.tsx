@@ -125,20 +125,36 @@ const ScrollCard: React.FC<{ children: React.ReactNode; className?: string }> = 
   </div>
 );
 
-const StatueHead: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <svg viewBox="0 0 100 140" className={className} fill="currentColor">
-    <ellipse cx="50" cy="70" rx="35" ry="45" />
-    <ellipse cx="50" cy="55" rx="30" ry="35" />
-    <path d="M25 50 Q50 20 75 50" fill="none" stroke="currentColor" strokeWidth="3" />
-    <ellipse cx="38" cy="55" rx="4" ry="2" opacity="0.5" />
-    <ellipse cx="62" cy="55" rx="4" ry="2" opacity="0.5" />
-    <path d="M45 68 Q50 72 55 68" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.4" />
-    <path d="M40 80 Q50 85 60 80" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
-    <path d="M20 35 Q25 15 50 10 Q75 15 80 35" opacity="0.6" />
-    <circle cx="28" cy="30" r="3" opacity="0.4" />
-    <circle cx="72" cy="30" r="3" opacity="0.4" />
-    <circle cx="40" cy="18" r="2" opacity="0.3" />
-    <circle cx="60" cy="18" r="2" opacity="0.3" />
+const GreekAmphora: React.FC<{ className?: string }> = ({ className = '' }) => (
+  <svg viewBox="0 0 100 160" className={className} fill="currentColor">
+    <defs>
+      <linearGradient id="amphoraBody" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="currentColor" stopOpacity="0.6" />
+        <stop offset="30%" stopColor="currentColor" stopOpacity="0.9" />
+        <stop offset="70%" stopColor="currentColor" stopOpacity="0.9" />
+        <stop offset="100%" stopColor="currentColor" stopOpacity="0.6" />
+      </linearGradient>
+    </defs>
+    <ellipse cx="50" cy="12" rx="12" ry="6" opacity="0.9" />
+    <rect x="44" y="12" width="12" height="8" opacity="0.85" />
+    <ellipse cx="50" cy="20" rx="8" ry="3" opacity="0.8" />
+    <path d="M42 20 Q38 25 36 35 Q34 50 38 65" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.7" />
+    <path d="M58 20 Q62 25 64 35 Q66 50 62 65" fill="none" stroke="currentColor" strokeWidth="4" opacity="0.7" />
+    <path d="M42 20 L42 35 Q42 50 50 55 Q58 50 58 35 L58 20" fill="url(#amphoraBody)" />
+    <ellipse cx="50" cy="75" rx="32" ry="45" fill="url(#amphoraBody)" />
+    <ellipse cx="50" cy="75" rx="32" ry="45" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+    <ellipse cx="50" cy="40" rx="18" ry="8" opacity="0.7" />
+    <path d="M25 60 Q50 55 75 60" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+    <path d="M22 75 Q50 70 78 75" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+    <path d="M25 90 Q50 85 75 90" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.4" />
+    <path d="M30 105 Q50 100 70 105" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.3" />
+    <path d="M38 65 Q40 75 38 85" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+    <path d="M62 65 Q60 75 62 85" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+    <ellipse cx="50" cy="120" rx="20" ry="6" opacity="0.8" />
+    <path d="M35 120 Q35 140 40 150 L60 150 Q65 140 65 120" fill="url(#amphoraBody)" />
+    <ellipse cx="50" cy="150" rx="15" ry="5" opacity="0.9" />
+    <rect x="40" y="150" width="20" height="6" opacity="0.85" />
+    <ellipse cx="50" cy="156" rx="18" ry="4" opacity="0.9" />
   </svg>
 );
 
@@ -589,7 +605,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         
         <div className="container mx-auto px-6 md:px-12 grid md:grid-cols-2 gap-12 items-center">
           <div className="relative">
-            <StatueHead className="statue-reveal w-48 md:w-64 h-auto text-stone-600/80 mx-auto" />
+            <GreekAmphora className="statue-reveal w-32 md:w-48 h-auto text-amber-700/70 mx-auto" />
             <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
           </div>
           
