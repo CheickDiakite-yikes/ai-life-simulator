@@ -137,21 +137,21 @@ const ShootingStar: React.FC<{ delay?: number; startX?: number; startY?: number 
   useEffect(() => {
     if (starRef.current) {
       const animateStar = () => {
-        const randomDelay = delay + Math.random() * 8;
+        const randomDelay = delay + Math.random() * 10;
         gsap.set(starRef.current, { 
           x: startX, 
           y: startY, 
           opacity: 0,
-          scale: 0.5 + Math.random() * 0.5
+          scale: 0.7 + Math.random() * 0.5
         });
         gsap.timeline({ delay: randomDelay, onComplete: animateStar })
-          .to(starRef.current, { opacity: 1, duration: 0.1 })
+          .to(starRef.current, { opacity: 1, duration: 0.05 })
           .to(starRef.current, { 
-            x: startX + 300 + Math.random() * 200, 
-            y: startY + 300 + Math.random() * 200, 
+            x: startX + 400 + Math.random() * 300, 
+            y: startY + 250 + Math.random() * 200, 
             opacity: 0,
-            duration: 0.8 + Math.random() * 0.4,
-            ease: "power1.in"
+            duration: 0.6 + Math.random() * 0.3,
+            ease: "power2.in"
           });
       };
       animateStar();
@@ -162,12 +162,31 @@ const ShootingStar: React.FC<{ delay?: number; startX?: number; startY?: number 
     <div 
       ref={starRef} 
       className="absolute pointer-events-none"
-      style={{ left: 0, top: 0 }}
+      style={{ left: 0, top: 0, transform: 'rotate(35deg)' }}
     >
-      <div className="relative">
-        <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_6px_2px_rgba(255,255,255,0.8)]" />
-        <div className="absolute top-0.5 right-1 w-16 h-0.5 bg-gradient-to-l from-transparent via-white/40 to-white/80 -rotate-45 origin-right" />
-      </div>
+      <svg width="120" height="20" viewBox="0 0 120 20" className="overflow-visible">
+        <defs>
+          <linearGradient id="starTail" x1="0%" y1="50%" x2="100%" y2="50%">
+            <stop offset="0%" stopColor="white" stopOpacity="0" />
+            <stop offset="30%" stopColor="#fef3c7" stopOpacity="0.3" />
+            <stop offset="60%" stopColor="#fcd34d" stopOpacity="0.6" />
+            <stop offset="85%" stopColor="#fbbf24" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="white" stopOpacity="1" />
+          </linearGradient>
+          <filter id="starGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <line x1="0" y1="10" x2="110" y2="10" stroke="url(#starTail)" strokeWidth="2" strokeLinecap="round" />
+        <line x1="60" y1="10" x2="110" y2="10" stroke="url(#starTail)" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
+        <circle cx="115" cy="10" r="3" fill="white" filter="url(#starGlow)" />
+        <circle cx="115" cy="10" r="2" fill="white" />
+        <circle cx="115" cy="10" r="5" fill="white" opacity="0.3" />
+      </svg>
     </div>
   );
 };
