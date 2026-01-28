@@ -17,6 +17,7 @@ export const gameSaves = pgTable("game_saves", {
   timeStep: text("time_step"),
   character: jsonb("character"),
   currentEvent: jsonb("current_event"),
+  history: jsonb("history"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -61,7 +61,17 @@ app.post("/api/saves", async (req, res) => {
     if (!userId || !saveName || !gameState) {
       return res.status(400).json({ error: "userId, saveName, and gameState are required" });
     }
-    const save = await storage.createSave({ userId, saveName, gameState });
+    const save = await storage.createSave({ 
+      userId, 
+      name: saveName,
+      mode: gameState.mode || 'REAL_LIFE',
+      theme: gameState.theme,
+      currentDate: gameState.currentDate,
+      timeStep: gameState.timeStep,
+      character: gameState.character,
+      currentEvent: gameState.currentEvent,
+      history: gameState.history || []
+    });
     res.json(save);
   } catch (error) {
     res.status(500).json({ error: "Failed to create save" });
@@ -74,7 +84,15 @@ app.put("/api/saves/:id", async (req, res) => {
     if (!gameState) {
       return res.status(400).json({ error: "gameState is required" });
     }
-    const save = await storage.updateSave(parseInt(req.params.id), gameState);
+    const save = await storage.updateSave(parseInt(req.params.id), {
+      mode: gameState.mode,
+      theme: gameState.theme,
+      currentDate: gameState.currentDate,
+      timeStep: gameState.timeStep,
+      character: gameState.character,
+      currentEvent: gameState.currentEvent,
+      history: gameState.history || []
+    });
     if (!save) {
       return res.status(404).json({ error: "Save not found" });
     }
@@ -108,7 +126,12 @@ app.post("/api/events", async (req, res) => {
     if (!saveId || !eventType || !eventData || year === undefined) {
       return res.status(400).json({ error: "saveId, eventType, eventData, and year are required" });
     }
-    const event = await storage.createEvent({ saveId, eventType, eventData, year });
+    const event = await storage.createEvent({ 
+      gameSaveId: saveId, 
+      type: eventType, 
+      description: JSON.stringify(eventData), 
+      year 
+    });
     res.json(event);
   } catch (error) {
     res.status(500).json({ error: "Failed to create event" });
@@ -130,7 +153,7 @@ app.post("/api/messages", async (req, res) => {
     if (!saveId || !role || !content) {
       return res.status(400).json({ error: "saveId, role, and content are required" });
     }
-    const message = await storage.createMessage({ saveId, role, content });
+    const message = await storage.createMessage({ gameSaveId: saveId, role, content });
     res.json(message);
   } catch (error) {
     res.status(500).json({ error: "Failed to create message" });

@@ -15,6 +15,15 @@ export interface SavedGame {
   currentEvent: any;
   createdAt: string;
   updatedAt: string;
+  gameState?: {
+    character: any;
+    history: LifeEvent[];
+    currentEvent: LifeEvent | null;
+    currentDate: string;
+    timeStep: string;
+    mode: string;
+    theme: string;
+  };
 }
 
 export interface SaveGameData {
@@ -168,24 +177,23 @@ export const loadGame = async (saveId: number): Promise<GameState | null> => {
     }
     
     const save = await response.json();
-    const gameStateData = save.gameState;
     
-    if (!gameStateData) {
+    if (!save || !save.character) {
       throw new Error('Invalid save data');
     }
     
     const gameState: GameState = {
-      character: gameStateData.character,
-      history: gameStateData.history || [],
-      currentEvent: gameStateData.currentEvent,
-      currentDate: gameStateData.currentDate || '',
-      timeStep: gameStateData.timeStep || 'Year',
+      character: save.character,
+      history: (save.history as LifeEvent[]) || [],
+      currentEvent: save.currentEvent,
+      currentDate: save.currentDate || '',
+      timeStep: (save.timeStep || 'Year') as any,
       isLoading: false,
-      mode: gameStateData.mode as GameMode,
-      theme: gameStateData.theme || 'modern'
+      mode: save.mode as GameMode,
+      theme: save.theme || 'modern'
     };
     
-    logDebug('Loaded game', { saveId, characterName: gameState.character?.name });
+    logDebug('Loaded game', { saveId, characterName: gameState.character?.name, historyLength: gameState.history.length });
     return gameState;
   } catch (error) {
     logError('Failed to load game', error);
