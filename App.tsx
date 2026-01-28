@@ -305,6 +305,33 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     }
   };
 
+  const handleReturnToSelection = async () => {
+    // First, force an immediate save of the current game
+    if (gameState.character?.name) {
+      try {
+        const saved = await saveGame(gameState, currentSaveId || undefined);
+        if (!currentSaveId) {
+          setCurrentSaveId(saved.id);
+        }
+        logDebug('Saved game before returning to selection', { saveId: saved.id });
+      } catch (err) {
+        logError('Failed to save game before returning', err);
+      }
+    }
+    
+    // Refresh saved games list so the user sees their current game
+    try {
+      const games = await loadSavedGames();
+      setSavedGames(games);
+    } catch (err) {
+      logError('Failed to refresh saved games', err);
+    }
+    
+    // Return to selection screen
+    setGameStarted(false);
+    setCurrentSaveId(null);
+  };
+
   const nextMode = () => {
     setSelectedModeIndex((prev) => (prev + 1) % modes.length);
   };
@@ -576,6 +603,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         isChatOpen={isChatOpen}
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
         onPlay={handlePlay}
+        onReturnToSelection={handleReturnToSelection}
       />
       <ChatInterface 
         isOpen={isChatOpen} 

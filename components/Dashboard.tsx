@@ -17,7 +17,8 @@ interface DashboardProps {
   currentDate: string;
   isChatOpen: boolean;
   onToggleChat: () => void;
-  onPlay: () => void; // New prop for the play button
+  onPlay: () => void;
+  onReturnToSelection?: () => void;
 }
 
 // Sub-component for individual Event Cards to manage their own media state
@@ -213,7 +214,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   currentDate,
   isChatOpen,
   onToggleChat,
-  onPlay
+  onPlay,
+  onReturnToSelection
 }) => {
   const [customInput, setCustomInput] = useState('');
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
@@ -283,20 +285,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Left Side: Title & Date */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 flex-shrink min-w-0">
           
-          {/* Desktop Title */}
-          <h1 className="hidden md:block text-xl font-bold tracking-[0.2em] text-amber-500 font-heading drop-shadow-sm">
+          {/* Desktop Title - Clickable to return to game selection */}
+          <button 
+            onClick={onReturnToSelection}
+            className="hidden md:block text-xl font-bold tracking-[0.2em] text-amber-500 font-heading drop-shadow-sm hover:text-amber-400 transition-colors cursor-pointer"
+            title="Return to game selection"
+          >
             LIFESIM
-          </h1>
+          </button>
 
-          {/* Mobile Title & Date Stacked */}
-          <div className="md:hidden flex flex-col justify-center flex-shrink-0">
-             <h1 className="text-base sm:text-lg font-bold tracking-wider text-amber-500 font-heading leading-none mb-1">
+          {/* Mobile Title & Date Stacked - Clickable to return to game selection */}
+          <button 
+            onClick={onReturnToSelection}
+            className="md:hidden flex flex-col justify-center flex-shrink-0 text-left"
+            title="Return to game selection"
+          >
+             <span className="text-base sm:text-lg font-bold tracking-wider text-amber-500 font-heading leading-none mb-1 hover:text-amber-400 transition-colors">
               LIFESIM
-            </h1>
+            </span>
             <span className="text-[10px] font-mono text-stone-500 leading-none">
               {formatDisplayDate(currentDate)}
             </span>
-          </div>
+          </button>
           
           <div className="h-8 w-px bg-stone-700 hidden md:block"></div>
           
