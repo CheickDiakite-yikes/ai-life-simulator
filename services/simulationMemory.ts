@@ -9,7 +9,7 @@ export interface RecentStart {
   country?: string;
 }
 
-const STORAGE_KEY = 'AETHERIA_RECENT_STARTS';
+const STORAGE_KEY = 'SIMILI_RECENT_STARTS';
 const MAX_ENTRIES = 12;
 
 const normalizeText = (value: string): string => {

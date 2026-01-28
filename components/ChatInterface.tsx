@@ -57,7 +57,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
   return (
     <div className="fixed bottom-[56px] md:bottom-6 right-0 md:right-6 w-full md:w-96 h-[50vh] md:h-[500px] bg-[#1c1917] md:rounded-sm rounded-t-sm flex flex-col z-40 shadow-2xl mx-auto border border-stone-700">
       <div className="p-4 border-b border-stone-700 flex justify-between items-center bg-[#292524] rounded-t-sm">
-        <h3 className="font-bold text-amber-500 font-heading tracking-wider">Oracle of Aetheria</h3>
+        <h3 className="font-bold text-amber-500 font-heading tracking-wider">Oracle of Simili</h3>
         <button onClick={onClose}><X size={18} className="text-stone-500 hover:text-stone-300" /></button>
       </div>
       

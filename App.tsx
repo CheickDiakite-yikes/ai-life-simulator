@@ -350,7 +350,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-4xl font-serif tracking-[0.3em] text-amber-500 mb-4">AETHERIA</h1>
+          <h1 className="text-4xl font-serif tracking-[0.3em] text-amber-500 mb-4">SIMILI</h1>
           <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto"></div>
         </div>
       </div>
@@ -381,7 +381,7 @@ const App: React.FC = () => {
         {/* Header */}
         <div className="flex-none pt-8 md:pt-12 pb-4 z-10">
           <h1 className="text-5xl md:text-7xl font-bold tracking-[0.2em] font-heading text-[#e7e5e4] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 gold-text">
-            AETHERIA
+            SIMILI
           </h1>
           <div className="flex items-center justify-center gap-4">
              <div className="h-px w-12 bg-amber-600/50"></div>

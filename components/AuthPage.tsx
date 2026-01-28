@@ -82,8 +82,8 @@ export default function AuthPage({ onAuthSuccess }: AuthPageProps) {
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif tracking-[0.3em] text-amber-500 mb-2">AETHERIA</h1>
-          <p className="text-slate-400 text-sm tracking-wide">LIFE SIMULATOR</p>
+          <h1 className="text-4xl font-serif tracking-[0.3em] text-amber-500 mb-2">SIMILI</h1>
+          <p className="text-slate-400 text-sm tracking-wide">AI LIFE SIMULATOR</p>
         </div>
 
         <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-2xl p-8 shadow-2xl">

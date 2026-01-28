@@ -150,7 +150,7 @@ export const generateInitialCharacter = async (
       ? 'User provided location; do not override.'
       : `Avoid repeating recent starts. Recent starts to avoid: ${recentSummary}. Avoid these countries if possible: ${avoidCountries.join(', ') || 'None'}. If a country is in the avoid list, you MUST choose a different country. Prefer underrepresented regions if you keep landing in the same area.`;
 
-    const systemInstruction = `You are the engine for 'Aetheria', a hyper-realistic life simulator.
+    const systemInstruction = `You are the engine for 'Simili', an AI-powered hyper-realistic life simulator.
     GOAL: Create a realistic, intersectional starting point for a human life.
     
     RULES:
@@ -679,7 +679,7 @@ export const getChatResponse = async (
   gameContext: string = ''
 ) => {
   const ai = getClient();
-  const systemInstruction = `You are a helpful AI assistant inside the Aetheria simulation. You know the game state and help the user understand mechanics or lore.\n\nCurrent Game State:\n${gameContext || 'No active game state provided.'}`;
+  const systemInstruction = `You are a helpful AI assistant inside the Simili life simulation. You know the game state and help the user understand mechanics or lore.\n\nCurrent Game State:\n${gameContext || 'No active game state provided.'}`;
   const chat = ai.chats.create({
     model: 'gemini-3-pro-preview',
     history: history,

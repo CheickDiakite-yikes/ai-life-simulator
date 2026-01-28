@@ -1,7 +1,7 @@
-# Aetheria - Life Simulator
+# Simili - AI Life Simulator
 
 ## Overview
-Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, integrated with Google Gemini AI for generating characters, life events, and multimedia content.
+Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, and Vite, integrated with Google Gemini AI for generating characters, life events, and multimedia content.
 
 ## Current State
 - Frontend running on port 5000 (Vite + React)
@@ -10,6 +10,7 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - Session-based authentication with email/password signup and login
 - Gemini AI integration using GEMINI_API_KEY environment secret
 - All data stored in PostgreSQL - NO localStorage or browser storage
+- Enhanced SEO with meta tags, Open Graph, and structured data
 
 ## Architecture
 
@@ -18,7 +19,7 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - `components/AuthPage.tsx` - Email/password signup and login form
 - `components/Dashboard.tsx` - Main game interface
 - `components/SavedGamesSection.tsx` - Display and load saved games
-- `components/ChatInterface.tsx` - AI chat interface
+- `components/ChatInterface.tsx` - AI chat interface (Oracle of Simili)
 - `services/saveGameService.ts` - Game save/load API calls (uses session cookies)
 - `services/geminiLoader.ts` - Gemini AI integration
 - `types.ts` - TypeScript type definitions
@@ -33,6 +34,7 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - Password hashing with bcryptjs (12 rounds)
 - All protected routes require valid session token
 - User signup includes: email, password, full name, optional "how did you find us"
+- Session cookie name: `simili_session`
 
 ### Database Schema (shared/schema.ts)
 - `users` - User profiles (email, passwordHash, fullName, source)
@@ -56,6 +58,14 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - `PUT /api/saves/:id` - Update save
 - `DELETE /api/saves/:id` - Delete save
 
+## SEO Features
+- Comprehensive meta tags (description, keywords, robots)
+- Open Graph meta tags for social sharing
+- Twitter Card meta tags
+- JSON-LD structured data (WebApplication schema)
+- Canonical URL
+- Mobile web app meta tags
+
 ## Development
 
 ### Scripts
@@ -68,6 +78,13 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-28: Renamed app from Aetheria to Simili
+  - Updated all UI text and branding
+  - Enhanced SEO with comprehensive meta tags
+  - Added Open Graph and Twitter Card tags
+  - Added JSON-LD structured data
+  - Updated session cookie name
+  - Updated AI system prompts
 - 2026-01-28: Full authentication system implemented
   - Email/password signup and login (NO Replit Auth)
   - Session-based authentication with httpOnly cookies
@@ -78,8 +95,3 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
   - Vite proxy configured to forward /api requests to backend
 - 2026-01-28: Database integration complete with Drizzle ORM
 - 2026-01-28: Full save/load game system with history persistence
-  - Added `history` JSONB column to `game_saves` table for full game state
-  - Auto-save with 2-second debounce on game state changes
-  - SavedGamesSection shows up to 6 recent saves on home screen
-  - Intelligent save naming based on mode/character
-  - Fixed: Renamed `current_date` to `game_date` column (PostgreSQL reserved word conflict)

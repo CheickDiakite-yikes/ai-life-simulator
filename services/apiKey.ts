@@ -1,6 +1,6 @@
 import { logDebug, logWarn } from './logger';
 
-const LOCAL_STORAGE_KEY = 'AETHERIA_API_KEY';
+const LOCAL_STORAGE_KEY = 'SIMILI_API_KEY';
 
 export const getEnvApiKey = (): string => {
   // Check for Vite environment variables

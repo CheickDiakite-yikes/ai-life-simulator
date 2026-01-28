@@ -1,9 +1,9 @@
-const PREFIX = '[Aetheria]';
+const PREFIX = '[Simili]';
 
 const isDebugEnabled = (): boolean => {
   if (typeof window === 'undefined') return false;
   try {
-    return window.localStorage.getItem('AETHERIA_DEBUG') === '1';
+    return window.localStorage.getItem('SIMILI_DEBUG') === '1';
   } catch {
     return false;
   }

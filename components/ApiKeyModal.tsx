@@ -89,7 +89,7 @@ export const ApiKeyModal: React.FC<{ onReady: () => void; forceSelection?: boole
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
       <div className="bg-[#1c1917] border border-amber-700/50 p-8 rounded-sm max-w-md w-full shadow-2xl shadow-amber-900/20 text-center">
         <h2 className="text-2xl font-bold mb-4 font-heading tracking-wider text-amber-500">
-          {forceSelection ? "API Key Issue" : "Aetheria Access"}
+          {forceSelection ? "API Key Issue" : "Simili Access"}
         </h2>
         <p className="text-stone-400 mb-6 font-serif">
           {forceSelection 

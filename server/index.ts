@@ -10,7 +10,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-const SESSION_COOKIE_NAME = "aetheria_session";
+const SESSION_COOKIE_NAME = "simili_session";
 const SESSION_DURATION_DAYS = 30;
 
 async function getAuthenticatedUser(req: express.Request) {

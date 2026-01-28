@@ -1,5 +1,5 @@
 {
-  "name": "Aetheria: Life Simulator",
-  "description": "An immersive, AI-driven life simulation experience ranging from realistic to fantasy, featuring real-time events, visual generation, and deep consequence tracking.",
+  "name": "Simili: AI Life Simulator",
+  "description": "An AI-powered hyper-realistic life simulation. Experience any life path with AI-generated characters, events, and stories. Live random fate, custom choices, or explore alternative realities.",
   "requestFramePermissions": []
 }
