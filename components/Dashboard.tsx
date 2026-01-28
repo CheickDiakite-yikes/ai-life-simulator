@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Character, LifeEvent, TimeStep, NewsItem } from '../types';
-import { generateSceneImage, generateSceneVideo, generateSpeech } from '../services/geminiService';
+import { generateSceneImage, generateSceneVideo, generateSpeech } from '../services/geminiLoader';
 import { 
   Heart, Zap, Brain, Wallet, User, Calendar, Pause, Play, 
   Send, Sparkles, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard, MessageCircle, Scroll 
@@ -21,7 +21,7 @@ interface DashboardProps {
 }
 
 // Sub-component for individual Event Cards to manage their own media state
-const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
+const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event, isCurrent = false }) => {
   const [imgUrl, setImgUrl] = useState<string | undefined>(event.imageUrl);
   const [vidUrl, setVidUrl] = useState<string | undefined>(event.videoUrl);
   const [audioUrl, setAudioUrl] = useState<string | undefined>(event.audioUrl);
@@ -120,7 +120,14 @@ const EventCard: React.FC<{ event: LifeEvent }> = ({ event }) => {
         </div>
         <div className="flex-1 pb-8 max-w-2xl">
           <div className="flex justify-between items-start mb-2">
-            <span className="text-xs font-heading tracking-widest text-stone-500">{formatDisplayDate(event.date)}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-heading tracking-widest text-stone-500">{formatDisplayDate(event.date)}</span>
+              {isCurrent && (
+                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 border border-amber-700/60 text-amber-400 bg-amber-900/20">
+                  Current
+                </span>
+              )}
+            </div>
             <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${
                event.type === 'major' ? 'text-amber-500 border-amber-900/50 bg-amber-900/10' : 'text-stone-500 border-stone-700 bg-stone-800/30'
             }`}>
@@ -412,6 +419,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {history.map((event, idx) => (
               <EventCard key={idx} event={event} />
             ))}
+
+            {currentEvent && !history.includes(currentEvent) && (
+              <EventCard event={currentEvent} isCurrent />
+            )}
             
             {/* Pending Event Indicator */}
             {isLoading && (

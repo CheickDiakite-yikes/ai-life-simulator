@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { GameMode, Character, GameState, LifeEvent } from './types';
-import { generateInitialCharacter, advanceLife, getRealWorldContext } from './services/geminiService';
+import { GameMode, Character, GameState, LifeEvent, TimeStep } from './types';
+import { generateInitialCharacter, advanceLife, getRealWorldContext } from './services/geminiLoader';
 import { Dashboard } from './components/Dashboard';
 import { GreekBackground } from './components/GreekBackground';
+import { StarBackground } from './components/StarBackground';
 import { ChatInterface } from './components/ChatInterface';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, Sparkles, MapPin, User, Scroll } from 'lucide-react';
+import { clearStoredApiKey } from './services/apiKey';
+import { addRecentStart, getRecentStarts } from './services/simulationMemory';
+import { logDebug, logError, logWarn } from './services/logger';
 
 const App: React.FC = () => {
   const [apiKeyReady, setApiKeyReady] = useState(false);
@@ -76,9 +80,11 @@ const App: React.FC = () => {
 
   const handleApiError = (err: any) => {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("Game Error:", msg);
+    logError("Game Error:", msg);
     
     if (msg.includes("403") || msg.includes("leaked") || msg.includes("PERMISSION_DENIED") || msg.includes("Requested entity was not found")) {
+       clearStoredApiKey();
+       logWarn('Cleared stored API key due to auth error');
        setForceKeySelection(true);
        setApiKeyReady(false);
        setError("API Key Error: The key was reported as leaked or invalid. Please select a new one.");
@@ -98,7 +104,23 @@ const App: React.FC = () => {
     setError(null);
     try {
       const inputs = mode === GameMode.FAKE ? customInputs : undefined;
-      const character = await generateInitialCharacter(mode, inputs);
+      if (mode === GameMode.FAKE) {
+        if (!customInputs.name.trim() || !customInputs.location.trim()) {
+          setError("Please provide both a name and a birthplace to begin.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      const recentStarts = getRecentStarts();
+      const character = await generateInitialCharacter(mode, inputs, { recentStarts });
+      addRecentStart({
+        name: character.name,
+        location: character.location,
+        ethnicity: character.ethnicity,
+        bio: character.bio,
+        mode
+      });
       
       const initialEvent: LifeEvent = {
         year: 0,
@@ -123,6 +145,7 @@ const App: React.FC = () => {
         theme: mode === GameMode.ALTERNATIVE ? 'fantasy' : 'modern'
       });
       setGameStarted(true);
+      logDebug('Game started', { mode, location: character.location, ethnicity: character.ethnicity });
     } catch (err) {
       handleApiError(err);
     } finally {
@@ -131,12 +154,17 @@ const App: React.FC = () => {
   };
 
   const handleChoice = async (choiceId: string, choiceText: string) => {
+    if (!gameState.currentEvent) {
+      logWarn('No current event available to advance', { choiceId, choiceText });
+      return;
+    }
     setGameState(prev => ({ ...prev, isLoading: true }));
     try {
       let context = "";
       if (Math.random() > 0.6) {
          context = await getRealWorldContext();
       }
+      logDebug('Advancing with choice', { choiceId, timeStep: gameState.timeStep });
       const { character, event } = await advanceLife(
         gameState.character,
         gameState.currentEvent,
@@ -161,6 +189,11 @@ const App: React.FC = () => {
 
   const handlePlay = () => {
     handleChoice('auto_advance', `Passively advance time by 1 ${gameState.timeStep}.`);
+  };
+
+  const handleTimeStepChange = (step: TimeStep) => {
+    logDebug('Time step changed', { from: gameState.timeStep, to: step });
+    setGameState(prev => ({ ...prev, timeStep: step }));
   };
 
   const nextMode = () => {
@@ -196,6 +229,16 @@ const App: React.FC = () => {
       prevMode();
     }
   };
+
+  const gameContext = gameStarted ? [
+    `Mode: ${gameState.mode}`,
+    `Date: ${gameState.currentDate} (Time step: ${gameState.timeStep})`,
+    `Character: ${gameState.character.name}, age ${gameState.character.age}, ${gameState.character.gender}, ${gameState.character.ethnicity}, location ${gameState.character.location}`,
+    `Vitals: health ${gameState.character.attributes?.health}, mental ${gameState.character.attributes?.happiness}, energy ${gameState.character.attributes?.energy}`,
+    `Wealth: personal ${gameState.character.attributes?.personalWealth}, family ${gameState.character.attributes?.familyWealth}`,
+    `Current Event: ${gameState.currentEvent?.description || 'None'}`,
+    `Recent Events: ${gameState.history.slice(-3).map(event => event.description).join(' | ') || 'None'}`
+  ].join('\n') : '';
 
   if (!apiKeyReady) {
     return (
@@ -379,9 +422,11 @@ const App: React.FC = () => {
     );
   }
 
+  const BackgroundComponent = gameState.theme === 'fantasy' ? StarBackground : GreekBackground;
+
   return (
     <div className="relative min-h-screen">
-      <GreekBackground />
+      <BackgroundComponent />
       <Dashboard 
         character={gameState.character}
         currentEvent={gameState.currentEvent}
@@ -389,7 +434,7 @@ const App: React.FC = () => {
         onChoice={handleChoice}
         isLoading={gameState.isLoading}
         timeStep={gameState.timeStep}
-        onTimeStepChange={(step) => setGameState(prev => ({ ...prev, timeStep: step }))}
+        onTimeStepChange={handleTimeStepChange}
         currentDate={gameState.currentDate}
         isChatOpen={isChatOpen}
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
@@ -399,6 +444,7 @@ const App: React.FC = () => {
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)}
         onOpen={() => setIsChatOpen(true)}
+        gameContext={gameContext}
       />
     </div>
   );

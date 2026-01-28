@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { getChatResponse } from '../services/geminiService';
+import { getChatResponse } from '../services/geminiLoader';
+import { logError } from '../services/logger';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 
 interface ChatInterfaceProps {
   isOpen: boolean;
   onClose: () => void;
   onOpen: () => void;
+  gameContext: string;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, onOpen }) => {
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, onOpen, gameContext }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<{role: string, parts: {text: string}[]}[]>([]);
@@ -31,9 +33,10 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
     setHistory(newHistory);
 
     try {
-      const responseText = await getChatResponse(newHistory, userMsg);
+      const responseText = await getChatResponse(newHistory, userMsg, gameContext);
       setHistory(prev => [...prev, { role: 'model', parts: [{ text: responseText || "I couldn't process that." }] }]);
     } catch (error) {
+        logError('Oracle chat failed', error);
         setHistory(prev => [...prev, { role: 'model', parts: [{ text: "Error connecting to AI." }] }]);
     } finally {
       setLoading(false);
