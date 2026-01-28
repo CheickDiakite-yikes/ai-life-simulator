@@ -394,6 +394,89 @@ const TwinklingStar: React.FC<{ x: number; y: number; delay?: number }> = ({ x, 
   );
 };
 
+const GlowingTitle: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => {
+  const titleRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (titleRef.current) {
+      gsap.to(titleRef.current, {
+        textShadow: "0 0 40px rgba(251, 191, 36, 0.4), 0 0 80px rgba(251, 191, 36, 0.2)",
+        duration: 2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    }
+  }, []);
+
+  return (
+    <h1 ref={titleRef} className={className}>
+      {children}
+    </h1>
+  );
+};
+
+const PulsingButton: React.FC<{ onClick: () => void; children: React.ReactNode }> = ({ onClick, children }) => {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (glowRef.current) {
+      gsap.to(glowRef.current, {
+        opacity: 0.6,
+        scale: 1.1,
+        duration: 1.5,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut"
+      });
+    }
+  }, []);
+
+  return (
+    <div className="relative inline-block">
+      <div 
+        ref={glowRef}
+        className="absolute inset-0 bg-amber-500/30 rounded-lg blur-xl -z-10"
+      />
+      <button
+        ref={buttonRef}
+        onClick={onClick}
+        className="group relative px-12 py-5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 text-white font-bold tracking-[0.2em] uppercase rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-amber-600/30 border border-amber-500/30"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+        {children}
+      </button>
+    </div>
+  );
+};
+
+const MagicSparkle: React.FC<{ delay?: number }> = ({ delay = 0 }) => {
+  const sparkleRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (sparkleRef.current) {
+      const animate = () => {
+        const x = Math.random() * 100;
+        const y = Math.random() * 100;
+        gsap.set(sparkleRef.current, { left: `${x}%`, top: `${y}%`, opacity: 0, scale: 0 });
+        gsap.timeline({ delay: delay + Math.random() * 5, onComplete: animate })
+          .to(sparkleRef.current, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" })
+          .to(sparkleRef.current, { opacity: 0, scale: 0.5, rotation: 180, duration: 0.5, ease: "power2.in" });
+      };
+      animate();
+    }
+  }, [delay]);
+
+  return (
+    <div ref={sparkleRef} className="absolute pointer-events-none">
+      <svg width="16" height="16" viewBox="0 0 16 16" className="text-amber-400/60">
+        <path d="M8 0 L9 6 L16 8 L9 10 L8 16 L7 10 L0 8 L7 6 Z" fill="currentColor" />
+      </svg>
+    </div>
+  );
+};
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -590,6 +673,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             
             <Spacecraft delay={2} direction="right" />
             <Spacecraft delay={20} direction="left" />
+            
+            <MagicSparkle delay={0} />
+            <MagicSparkle delay={2} />
+            <MagicSparkle delay={4} />
           </>
         )}
         
@@ -728,28 +815,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
           </div>
 
           <div className="space-y-8 max-w-3xl mx-auto">
-            <div className="testimonial bg-gradient-to-r from-stone-800/30 to-transparent border-l-4 border-amber-600/50 p-6 md:p-8">
-              <p className="text-stone-300 font-serif italic text-lg leading-relaxed">
+            <div className="testimonial group bg-gradient-to-r from-stone-800/30 to-transparent border-l-4 border-amber-600/50 p-6 md:p-8 transition-all duration-500 hover:from-stone-800/50 hover:border-amber-500 hover:translate-x-2 cursor-default">
+              <p className="text-stone-300 font-serif italic text-lg leading-relaxed group-hover:text-stone-200 transition-colors duration-300">
                 "I lived as a merchant in Renaissance Venice, a farmer in ancient China, and a programmer in modern Tokyo. 
                 Each life taught me something about the human experience."
               </p>
-              <p className="mt-4 text-amber-500/80 text-sm tracking-wider">— A Traveler of Many Lives</p>
+              <p className="mt-4 text-amber-500/80 text-sm tracking-wider group-hover:text-amber-400 transition-colors duration-300">— A Traveler of Many Lives</p>
             </div>
 
-            <div className="testimonial bg-gradient-to-r from-stone-800/30 to-transparent border-l-4 border-amber-600/50 p-6 md:p-8">
-              <p className="text-stone-300 font-serif italic text-lg leading-relaxed">
+            <div className="testimonial group bg-gradient-to-r from-stone-800/30 to-transparent border-l-4 border-amber-600/50 p-6 md:p-8 transition-all duration-500 hover:from-stone-800/50 hover:border-amber-500 hover:translate-x-2 cursor-default">
+              <p className="text-stone-300 font-serif italic text-lg leading-relaxed group-hover:text-stone-200 transition-colors duration-300">
                 "The AI understands consequence like no other simulation. My choices rippled through generations. 
                 My legacy persisted long after my character's end."
               </p>
-              <p className="mt-4 text-amber-500/80 text-sm tracking-wider">— Seeker of Destiny</p>
+              <p className="mt-4 text-amber-500/80 text-sm tracking-wider group-hover:text-amber-400 transition-colors duration-300">— Seeker of Destiny</p>
             </div>
 
-            <div className="testimonial bg-gradient-to-r from-stone-800/30 to-transparent border-l-4 border-amber-600/50 p-6 md:p-8">
-              <p className="text-stone-300 font-serif italic text-lg leading-relaxed">
+            <div className="testimonial group bg-gradient-to-r from-stone-800/30 to-transparent border-l-4 border-amber-600/50 p-6 md:p-8 transition-all duration-500 hover:from-stone-800/50 hover:border-amber-500 hover:translate-x-2 cursor-default">
+              <p className="text-stone-300 font-serif italic text-lg leading-relaxed group-hover:text-stone-200 transition-colors duration-300">
                 "In Alternative mode, I discovered I was born with the gift of prophecy. 
                 The story that unfolded was unlike anything I could have imagined."
               </p>
-              <p className="mt-4 text-amber-500/80 text-sm tracking-wider">— Walker Between Worlds</p>
+              <p className="mt-4 text-amber-500/80 text-sm tracking-wider group-hover:text-amber-400 transition-colors duration-300">— Walker Between Worlds</p>
             </div>
           </div>
         </div>
@@ -774,18 +861,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             The Fates await. Step through the veil and discover who you might become.
           </p>
           
-          <button
-            onClick={onEnterApp}
-            className="group relative px-12 py-5 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-700 text-white font-bold tracking-[0.2em] uppercase rounded-lg overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-amber-600/30 border border-amber-500/30"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          <PulsingButton onClick={onEnterApp}>
             <span className="relative flex items-center gap-3">
               Enter the Simulation
               <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </span>
-          </button>
+          </PulsingButton>
           
           <GreekPattern className="w-64 h-8 text-amber-700/30 mx-auto mt-12" />
         </div>
