@@ -81,6 +81,15 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-28: Updated README.md with comprehensive contribution guidelines
+  - Local development setup instructions
+  - Project structure documentation
+  - Replit environment notes and constraints
+  - API endpoint documentation
+- 2026-01-28: Improved saved games UI with responsive horizontal scrolling
+  - Smart layout: expands for 1-2 saves, scrolls for 3+
+  - Horizontal row-style cards with all info visible
+  - Color-coded mode badges and visual hierarchy
 - 2026-01-28: Added navigation from game to selection screen
   - Clicking "LIFESIM" title in the header returns to game selection
   - Auto-saves current game before navigating back
