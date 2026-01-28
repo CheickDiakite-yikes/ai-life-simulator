@@ -3,7 +3,10 @@ import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  fullName: text("full_name").notNull(),
+  source: text("source"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -48,6 +51,14 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const usersRelations = relations(users, ({ many }) => ({
   saves: many(gameSaves),
   messages: many(chatMessages),
@@ -88,3 +99,5 @@ export type LifeEvent = typeof lifeEvents.$inferSelect;
 export type InsertLifeEvent = typeof lifeEvents.$inferInsert;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = typeof chatMessages.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type InsertSession = typeof sessions.$inferInsert;

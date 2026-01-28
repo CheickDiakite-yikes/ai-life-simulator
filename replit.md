@@ -7,29 +7,54 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - Frontend running on port 5000 (Vite + React)
 - Backend API running on port 3000 (Express)
 - PostgreSQL database for persistence
+- Session-based authentication with email/password signup and login
 - Gemini AI integration using GEMINI_API_KEY environment secret
+- All data stored in PostgreSQL - NO localStorage or browser storage
 
 ## Architecture
 
 ### Frontend (React + Vite)
-- `App.tsx` - Main application component with game state management
-- `components/` - UI components (Dashboard, ChatInterface, ApiKeyModal, etc.)
-- `services/` - Business logic (geminiService, apiKey, simulationMemory, etc.)
+- `App.tsx` - Main application with authentication state and game management
+- `components/AuthPage.tsx` - Email/password signup and login form
+- `components/Dashboard.tsx` - Main game interface
+- `components/SavedGamesSection.tsx` - Display and load saved games
+- `components/ChatInterface.tsx` - AI chat interface
+- `services/saveGameService.ts` - Game save/load API calls (uses session cookies)
+- `services/geminiLoader.ts` - Gemini AI integration
 - `types.ts` - TypeScript type definitions
 
 ### Backend (Express)
-- `server/index.ts` - Express API endpoints
+- `server/index.ts` - Express API endpoints with session authentication
 - `server/db.ts` - Drizzle database connection
 - `server/storage.ts` - Database storage layer with IStorage interface
 
-### Database Schema
-- `users` - User profiles
+### Authentication
+- Session-based using httpOnly cookies (30-day expiration)
+- Password hashing with bcryptjs (12 rounds)
+- All protected routes require valid session token
+- User signup includes: email, password, full name, optional "how did you find us"
+
+### Database Schema (shared/schema.ts)
+- `users` - User profiles (email, passwordHash, fullName, source)
+- `sessions` - Session tokens with expiration
 - `game_saves` - Game state saves with character data, history, and current event
 - `life_events` - Historical life events for each save
 - `chat_messages` - AI chat history
 
-### Shared
-- `shared/schema.ts` - Drizzle ORM schema definitions
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - Create account
+- `POST /api/auth/login` - Login
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Get current user
+
+### Game Saves (all require authentication)
+- `GET /api/saves` - Get user's saved games
+- `GET /api/save/:id` - Get specific save
+- `POST /api/saves` - Create new save
+- `PUT /api/saves/:id` - Update save
+- `DELETE /api/saves/:id` - Delete save
 
 ## Development
 
@@ -43,14 +68,18 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-28: Full authentication system implemented
+  - Email/password signup and login (NO Replit Auth)
+  - Session-based authentication with httpOnly cookies
+  - Removed all localStorage usage - PostgreSQL only
+  - AuthPage component with signup/login forms
+  - Logout button on game selection screen
+  - All save/load operations require authenticated session
+  - Vite proxy configured to forward /api requests to backend
 - 2026-01-28: Database integration complete with Drizzle ORM
-- API endpoints for users, saves, events, and chat messages
-- Removed API key modal - uses environment secrets instead
 - 2026-01-28: Full save/load game system with history persistence
   - Added `history` JSONB column to `game_saves` table for full game state
   - Auto-save with 2-second debounce on game state changes
   - SavedGamesSection shows up to 6 recent saves on home screen
   - Intelligent save naming based on mode/character
-  - User management via localStorage for persistence across sessions
   - Fixed: Renamed `current_date` to `game_date` column (PostgreSQL reserved word conflict)
-  - Fixed: Improved user verification to handle stale localStorage data

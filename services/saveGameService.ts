@@ -9,78 +9,14 @@ export interface SavedGame {
   name: string;
   mode: string;
   theme: string | null;
-  currentDate: string | null;
+  gameDate: string | null;
   timeStep: string | null;
   character: any;
   currentEvent: any;
+  history: any;
   createdAt: string;
   updatedAt: string;
-  gameState?: {
-    character: any;
-    history: LifeEvent[];
-    currentEvent: LifeEvent | null;
-    currentDate: string;
-    timeStep: string;
-    mode: string;
-    theme: string;
-  };
 }
-
-export interface SaveGameData {
-  userId: number;
-  name: string;
-  mode: string;
-  theme: string;
-  currentDate: string;
-  timeStep: string;
-  character: any;
-  currentEvent: LifeEvent | null;
-  history: LifeEvent[];
-}
-
-const getOrCreateUser = async (): Promise<number> => {
-  let savedUserId = localStorage.getItem('aetheria_user_id');
-  
-  // Verify the stored user still exists
-  if (savedUserId) {
-    try {
-      const checkResponse = await fetch(`${API_BASE}/users/${savedUserId}`);
-      if (checkResponse.ok) {
-        logDebug('Using existing user', { userId: savedUserId });
-        return parseInt(savedUserId);
-      }
-      // User doesn't exist, clear localStorage and create new one
-      localStorage.removeItem('aetheria_user_id');
-      logDebug('Stored user not found, creating new one');
-    } catch (error) {
-      localStorage.removeItem('aetheria_user_id');
-    }
-  }
-  
-  const username = `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-  
-  try {
-    const response = await fetch(`${API_BASE}/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username })
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      logError('Failed to create user - server response', { status: response.status, error: errorText });
-      throw new Error('Failed to create user');
-    }
-    
-    const user = await response.json();
-    localStorage.setItem('aetheria_user_id', user.id.toString());
-    logDebug('Created new user', { userId: user.id });
-    return user.id;
-  } catch (error) {
-    logError('Failed to create user', error);
-    throw error;
-  }
-};
 
 const generateSaveName = (gameState: GameState): string => {
   const modeNames: Record<string, string> = {
@@ -97,18 +33,16 @@ const generateSaveName = (gameState: GameState): string => {
 };
 
 export const saveGame = async (gameState: GameState, existingSaveId?: number): Promise<SavedGame> => {
-  const userId = await getOrCreateUser();
   const saveName = generateSaveName(gameState);
   
-  const saveData = {
-    userId,
-    name: saveName,
+  const gameStateData = {
     mode: gameState.mode,
     theme: gameState.theme,
     currentDate: gameState.currentDate,
     timeStep: gameState.timeStep,
     character: gameState.character,
-    currentEvent: gameState.currentEvent
+    currentEvent: gameState.currentEvent,
+    history: gameState.history
   };
   
   try {
@@ -116,15 +50,14 @@ export const saveGame = async (gameState: GameState, existingSaveId?: number): P
       const response = await fetch(`${API_BASE}/saves/${existingSaveId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          gameState: {
-            ...saveData,
-            history: gameState.history
-          }
-        })
+        credentials: 'include',
+        body: JSON.stringify({ gameState: gameStateData })
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Not authenticated');
+        }
         throw new Error('Failed to update save');
       }
       
@@ -135,17 +68,17 @@ export const saveGame = async (gameState: GameState, existingSaveId?: number): P
       const response = await fetch(`${API_BASE}/saves`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          userId,
           saveName,
-          gameState: {
-            ...saveData,
-            history: gameState.history
-          }
+          gameState: gameStateData
         })
       });
       
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Not authenticated');
+        }
         throw new Error('Failed to create save');
       }
       
@@ -161,15 +94,14 @@ export const saveGame = async (gameState: GameState, existingSaveId?: number): P
 
 export const loadSavedGames = async (): Promise<SavedGame[]> => {
   try {
-    const savedUserId = localStorage.getItem('aetheria_user_id');
-    
-    if (!savedUserId) {
-      return [];
-    }
-    
-    const response = await fetch(`${API_BASE}/saves/${savedUserId}`);
+    const response = await fetch(`${API_BASE}/saves`, {
+      credentials: 'include'
+    });
     
     if (!response.ok) {
+      if (response.status === 401) {
+        return [];
+      }
       throw new Error('Failed to load saves');
     }
     
@@ -184,7 +116,9 @@ export const loadSavedGames = async (): Promise<SavedGame[]> => {
 
 export const loadGame = async (saveId: number): Promise<GameState | null> => {
   try {
-    const response = await fetch(`${API_BASE}/save/${saveId}`);
+    const response = await fetch(`${API_BASE}/save/${saveId}`, {
+      credentials: 'include'
+    });
     
     if (!response.ok) {
       throw new Error('Failed to load save');
@@ -218,7 +152,8 @@ export const loadGame = async (saveId: number): Promise<GameState | null> => {
 export const deleteSavedGame = async (saveId: number): Promise<boolean> => {
   try {
     const response = await fetch(`${API_BASE}/saves/${saveId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include'
     });
     
     if (!response.ok) {

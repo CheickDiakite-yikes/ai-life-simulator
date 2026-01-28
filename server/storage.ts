@@ -1,17 +1,23 @@
 import { 
-  users, gameSaves, lifeEvents, chatMessages,
+  users, gameSaves, lifeEvents, chatMessages, sessions,
   type User, type InsertUser,
   type GameSave, type InsertGameSave,
   type LifeEvent, type InsertLifeEvent,
-  type ChatMessage, type InsertChatMessage
+  type ChatMessage, type InsertChatMessage,
+  type Session, type InsertSession
 } from "../shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, lt } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  
+  createSession(session: InsertSession): Promise<Session>;
+  getSessionByToken(token: string): Promise<Session | undefined>;
+  deleteSession(token: string): Promise<void>;
+  deleteExpiredSessions(): Promise<void>;
   
   getSave(id: number): Promise<GameSave | undefined>;
   getSavesByUser(userId: number): Promise<GameSave[]>;
@@ -32,14 +38,35 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email.toLowerCase()));
     return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const [user] = await db.insert(users).values({
+      ...insertUser,
+      email: insertUser.email.toLowerCase()
+    }).returning();
     return user;
+  }
+
+  async createSession(insertSession: InsertSession): Promise<Session> {
+    const [session] = await db.insert(sessions).values(insertSession).returning();
+    return session;
+  }
+
+  async getSessionByToken(token: string): Promise<Session | undefined> {
+    const [session] = await db.select().from(sessions).where(eq(sessions.token, token));
+    return session || undefined;
+  }
+
+  async deleteSession(token: string): Promise<void> {
+    await db.delete(sessions).where(eq(sessions.token, token));
+  }
+
+  async deleteExpiredSessions(): Promise<void> {
+    await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
   }
 
   async getSave(id: number): Promise<GameSave | undefined> {

@@ -5,17 +5,16 @@ import { Dashboard } from './components/Dashboard';
 import { GreekBackground } from './components/GreekBackground';
 import { StarBackground } from './components/StarBackground';
 import { ChatInterface } from './components/ChatInterface';
-import { ApiKeyModal } from './components/ApiKeyModal';
 import { SavedGamesSection } from './components/SavedGamesSection';
-import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, Sparkles, MapPin, User, Scroll } from 'lucide-react';
-import { clearStoredApiKey } from './services/apiKey';
+import AuthPage, { AuthUser } from './components/AuthPage';
+import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, MapPin, User, Scroll, LogOut } from 'lucide-react';
 import { addRecentStart, getRecentStarts } from './services/simulationMemory';
 import { logDebug, logError, logWarn } from './services/logger';
 import { saveGame, loadSavedGames, loadGame, deleteSavedGame, SavedGame } from './services/saveGameService';
 
 const App: React.FC = () => {
-  const [apiKeyReady, setApiKeyReady] = useState(false);
-  const [forceKeySelection, setForceKeySelection] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +46,31 @@ const App: React.FC = () => {
 
   const [customInputs, setCustomInputs] = useState({ name: '', location: '' });
 
-  // Load saved games on mount
+  // Check authentication on mount
   useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (err) {
+        logError('Auth check failed', err);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  // Load saved games when user is authenticated
+  useEffect(() => {
+    if (!user) {
+      setSavedGames([]);
+      return;
+    }
+    
     const fetchSavedGames = async () => {
       try {
         const games = await loadSavedGames();
@@ -58,7 +80,19 @@ const App: React.FC = () => {
       }
     };
     fetchSavedGames();
-  }, []);
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      setUser(null);
+      setGameStarted(false);
+      setCurrentSaveId(null);
+      setSavedGames([]);
+    } catch (err) {
+      logError('Logout failed', err);
+    }
+  };
 
   // Auto-save when game state changes (debounced)
   useEffect(() => {
@@ -130,21 +164,14 @@ const App: React.FC = () => {
     const msg = err instanceof Error ? err.message : String(err);
     logError("Game Error:", msg);
     
-    if (msg.includes("403") || msg.includes("leaked") || msg.includes("PERMISSION_DENIED") || msg.includes("Requested entity was not found")) {
-       clearStoredApiKey();
-       logWarn('Cleared stored API key due to auth error');
-       setForceKeySelection(true);
-       setApiKeyReady(false);
-       setError("API Key Error: The key was reported as leaked or invalid. Please select a new one.");
+    if (msg.includes("401") || msg.includes("Not authenticated")) {
+       setUser(null);
+       setError("Session expired. Please log in again.");
+    } else if (msg.includes("403") || msg.includes("PERMISSION_DENIED")) {
+       setError("API Error: Permission denied. Please contact support.");
     } else {
        setError("The Oracles are silent: " + msg);
     }
-  };
-
-  const onKeyReady = () => {
-    setApiKeyReady(true);
-    setForceKeySelection(false);
-    setError(null);
   };
 
   const startGame = async (mode: GameMode) => {
@@ -318,13 +345,21 @@ const App: React.FC = () => {
     `Recent Events: ${gameState.history.slice(-3).map(event => event.description).join(' | ') || 'None'}`
   ].join('\n') : '';
 
-  if (!apiKeyReady) {
+  // Show loading screen while checking authentication
+  if (authLoading) {
     return (
-      <>
-        <GreekBackground />
-        <ApiKeyModal onReady={onKeyReady} forceSelection={forceKeySelection} />
-      </>
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-serif tracking-[0.3em] text-amber-500 mb-4">AETHERIA</h1>
+          <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto"></div>
+        </div>
+      </div>
     );
+  }
+
+  // Show authentication page if not logged in
+  if (!user) {
+    return <AuthPage onAuthSuccess={setUser} />;
   }
 
   if (!gameStarted) {
@@ -334,6 +369,15 @@ const App: React.FC = () => {
       <div className="h-screen w-full flex flex-col items-center overflow-hidden relative text-center font-serif">
         <GreekBackground />
         
+        {/* Logout Button */}
+        <button
+          onClick={handleLogout}
+          className="absolute top-4 right-4 z-50 flex items-center gap-2 px-3 py-2 bg-stone-800/80 backdrop-blur-sm border border-stone-600/50 rounded-lg text-stone-300 hover:text-amber-500 hover:border-amber-500/50 transition-colors text-sm"
+        >
+          <LogOut size={16} />
+          <span className="hidden sm:inline">Logout</span>
+        </button>
+        
         {/* Header */}
         <div className="flex-none pt-8 md:pt-12 pb-4 z-10">
           <h1 className="text-5xl md:text-7xl font-bold tracking-[0.2em] font-heading text-[#e7e5e4] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 gold-text">
@@ -342,7 +386,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-center gap-4">
              <div className="h-px w-12 bg-amber-600/50"></div>
              <p className="text-sm md:text-base text-stone-400 font-light tracking-widest uppercase font-heading">
-               Initialize Simulation
+               Welcome, {user.fullName.split(' ')[0]}
              </p>
              <div className="h-px w-12 bg-amber-600/50"></div>
           </div>
