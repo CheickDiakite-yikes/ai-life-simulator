@@ -184,12 +184,87 @@ This project is designed to run on Replit. If you're developing locally but the 
 
 ---
 
+## Environment Variables
+
+### Required Variables
+
+| Variable | Description | Where to Set |
+|----------|-------------|--------------|
+| `GEMINI_API_KEY` | Google Gemini API key for AI features | Secrets (Replit) or `.env.local` (local) |
+| `DATABASE_URL` | PostgreSQL connection string | Auto-provisioned on Replit, manual for local |
+
+### Optional Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `5000` | Server port (production) |
+| `NODE_ENV` | `development` | Environment mode |
+
+### Local Development Setup
+
+Create a `.env.local` file (never commit this):
+
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+DATABASE_URL=postgresql://username:password@localhost:5432/simili
+```
+
+### Getting a Gemini API Key
+
+1. Go to [Google AI Studio](https://aistudio.google.com/)
+2. Sign in with your Google account
+3. Click "Get API Key" 
+4. Create a new API key or use an existing one
+5. Copy the key and add it to your environment
+
+---
+
+## Deployment
+
+### Production URL
+
+**Live Site**: https://simili-ai.replit.app
+
+### Deployment Process (Replit)
+
+1. **Build command**: `npm run build`
+   - Compiles React/TypeScript to optimized static files in `dist/`
+
+2. **Run command**: `npm run start`
+   - Starts Express server on port 5000
+   - Serves built frontend and API endpoints
+
+3. **Deployment type**: Autoscale
+   - Scales from zero based on traffic
+   - Cost-effective for variable load
+
+### Manual Deployment Steps
+
+1. Ensure all environment variables are set in Replit Secrets
+2. Test locally with `npm run dev`
+3. Build with `npm run build` to verify no errors
+4. Click "Deploy" in Replit
+
+### Production Checklist
+
+Before deploying, verify:
+
+- [ ] `GEMINI_API_KEY` is set in Replit Secrets
+- [ ] Database schema is up to date (`npm run db:push`)
+- [ ] Build completes without errors
+- [ ] No console errors in development
+- [ ] Authentication flow works
+- [ ] Game saves persist correctly
+
+---
+
 ## Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start both backend and frontend servers |
-| `npm run build` | Build for production |
+| `npm run dev` | Start both backend and frontend servers (development) |
+| `npm run build` | Build frontend for production |
+| `npm run start` | Start production server (serves built frontend + API) |
 | `npm run db:push` | Push schema changes to database |
 | `npm run db:studio` | Open Drizzle Studio for database inspection |
 
