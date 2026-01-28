@@ -88,6 +88,43 @@ const FloatingOrb: React.FC<{ className?: string; delay?: number }> = ({ classNa
   );
 };
 
+const ScrollCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`relative ${className}`}>
+    <svg viewBox="0 0 280 400" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="scrollParchment" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#292524" />
+          <stop offset="50%" stopColor="#1c1917" />
+          <stop offset="100%" stopColor="#0c0a09" />
+        </linearGradient>
+        <linearGradient id="scrollEdge" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#b45309" stopOpacity="0.4" />
+          <stop offset="50%" stopColor="#d97706" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#b45309" stopOpacity="0.4" />
+        </linearGradient>
+        <linearGradient id="scrollRoll" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#44403c" />
+          <stop offset="30%" stopColor="#292524" />
+          <stop offset="70%" stopColor="#1c1917" />
+          <stop offset="100%" stopColor="#44403c" />
+        </linearGradient>
+      </defs>
+      <ellipse cx="140" cy="25" rx="130" ry="25" fill="url(#scrollRoll)" />
+      <rect x="10" y="25" width="260" height="350" fill="url(#scrollParchment)" />
+      <ellipse cx="140" cy="375" rx="130" ry="25" fill="url(#scrollRoll)" />
+      <ellipse cx="140" cy="25" rx="130" ry="25" fill="none" stroke="url(#scrollEdge)" strokeWidth="1.5" />
+      <ellipse cx="140" cy="375" rx="130" ry="25" fill="none" stroke="url(#scrollEdge)" strokeWidth="1.5" />
+      <line x1="10" y1="25" x2="10" y2="375" stroke="#b45309" strokeOpacity="0.3" strokeWidth="1" />
+      <line x1="270" y1="25" x2="270" y2="375" stroke="#b45309" strokeOpacity="0.3" strokeWidth="1" />
+      <ellipse cx="140" cy="25" rx="110" ry="15" fill="none" stroke="#78716c" strokeOpacity="0.2" strokeWidth="0.5" />
+      <ellipse cx="140" cy="375" rx="110" ry="15" fill="none" stroke="#78716c" strokeOpacity="0.2" strokeWidth="0.5" />
+    </svg>
+    <div className="relative z-10 pt-12 pb-12 px-8">
+      {children}
+    </div>
+  </div>
+);
+
 const StatueHead: React.FC<{ className?: string }> = ({ className = '' }) => (
   <svg viewBox="0 0 100 140" className={className} fill="currentColor">
     <ellipse cx="50" cy="70" rx="35" ry="45" />
@@ -582,45 +619,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="feature-card group relative bg-gradient-to-b from-stone-800/50 to-stone-900/50 border border-amber-700/20 rounded-t-[40px] rounded-b-xl p-8 hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-2">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent" />
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-amber-900/30 flex items-center justify-center border border-amber-700/30 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" />
-                </svg>
+          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+            <ScrollCard className="feature-card group transition-all duration-500 hover:-translate-y-2 hover:scale-105">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 mb-6 rounded-full bg-amber-900/40 flex items-center justify-center border border-amber-600/40 group-hover:scale-110 group-hover:border-amber-500/60 transition-all duration-300 shadow-lg shadow-amber-900/20">
+                  <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 00-3.7-3.7 48.678 48.678 0 00-7.324 0 4.006 4.006 0 00-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3l-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 003.7 3.7 48.656 48.656 0 007.324 0 4.006 4.006 0 003.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3l-3 3" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-amber-300 mb-4 font-serif tracking-wide">Real Life</h3>
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-600/50 to-transparent mb-4" />
+                <p className="text-stone-400 text-sm leading-relaxed font-serif">
+                  Complete randomization. Birth into any era, any place, any circumstance. Fate is truly blind.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-amber-300 text-center mb-3 font-serif">Real Life</h3>
-              <p className="text-stone-400 text-center text-sm leading-relaxed font-serif">
-                Complete randomization. Birth into any era, any place, any circumstance. Fate is truly blind.
-              </p>
-            </div>
+            </ScrollCard>
 
-            <div className="feature-card group relative bg-gradient-to-b from-stone-800/50 to-stone-900/50 border border-amber-700/20 rounded-t-[40px] rounded-b-xl p-8 hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-2">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent" />
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-amber-900/30 flex items-center justify-center border border-amber-700/30 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
+            <ScrollCard className="feature-card group transition-all duration-500 hover:-translate-y-2 hover:scale-105">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 mb-6 rounded-full bg-amber-900/40 flex items-center justify-center border border-amber-600/40 group-hover:scale-110 group-hover:border-amber-500/60 transition-all duration-300 shadow-lg shadow-amber-900/20">
+                  <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-amber-300 mb-4 font-serif tracking-wide">Custom Start</h3>
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-600/50 to-transparent mb-4" />
+                <p className="text-stone-400 text-sm leading-relaxed font-serif">
+                  Design your origin. Choose your name, birthplace, and initial circumstances to craft your beginning.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-amber-300 text-center mb-3 font-serif">Custom Start</h3>
-              <p className="text-stone-400 text-center text-sm leading-relaxed font-serif">
-                Design your origin. Choose your name, birthplace, and initial circumstances to craft your beginning.
-              </p>
-            </div>
+            </ScrollCard>
 
-            <div className="feature-card group relative bg-gradient-to-b from-stone-800/50 to-stone-900/50 border border-amber-700/20 rounded-t-[40px] rounded-b-xl p-8 hover:border-amber-500/50 transition-all duration-500 hover:-translate-y-2">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-amber-600 to-transparent" />
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-amber-900/30 flex items-center justify-center border border-amber-700/30 group-hover:scale-110 transition-transform duration-300">
-                <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                </svg>
+            <ScrollCard className="feature-card group transition-all duration-500 hover:-translate-y-2 hover:scale-105">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 mb-6 rounded-full bg-amber-900/40 flex items-center justify-center border border-amber-600/40 group-hover:scale-110 group-hover:border-amber-500/60 transition-all duration-300 shadow-lg shadow-amber-900/20">
+                  <svg className="w-8 h-8 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-amber-300 mb-4 font-serif tracking-wide">Alternative</h3>
+                <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-600/50 to-transparent mb-4" />
+                <p className="text-stone-400 text-sm leading-relaxed font-serif">
+                  Step into the multiverse. Magic, superpowers, and the supernatural become possible.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-amber-300 text-center mb-3 font-serif">Alternative</h3>
-              <p className="text-stone-400 text-center text-sm leading-relaxed font-serif">
-                Step into the multiverse. Magic, superpowers, and the supernatural become possible.
-              </p>
-            </div>
+            </ScrollCard>
           </div>
         </div>
       </section>
