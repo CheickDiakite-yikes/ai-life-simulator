@@ -131,6 +131,165 @@ const ScrollIndicator: React.FC = () => {
   );
 };
 
+const ShootingStar: React.FC<{ delay?: number; startX?: number; startY?: number }> = ({ delay = 0, startX = 0, startY = 0 }) => {
+  const starRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (starRef.current) {
+      const animateStar = () => {
+        const randomDelay = delay + Math.random() * 8;
+        gsap.set(starRef.current, { 
+          x: startX, 
+          y: startY, 
+          opacity: 0,
+          scale: 0.5 + Math.random() * 0.5
+        });
+        gsap.timeline({ delay: randomDelay, onComplete: animateStar })
+          .to(starRef.current, { opacity: 1, duration: 0.1 })
+          .to(starRef.current, { 
+            x: startX + 300 + Math.random() * 200, 
+            y: startY + 300 + Math.random() * 200, 
+            opacity: 0,
+            duration: 0.8 + Math.random() * 0.4,
+            ease: "power1.in"
+          });
+      };
+      animateStar();
+    }
+  }, [delay, startX, startY]);
+
+  return (
+    <div 
+      ref={starRef} 
+      className="absolute pointer-events-none"
+      style={{ left: 0, top: 0 }}
+    >
+      <div className="relative">
+        <div className="w-1 h-1 bg-white rounded-full shadow-[0_0_6px_2px_rgba(255,255,255,0.8)]" />
+        <div className="absolute top-0.5 right-1 w-16 h-0.5 bg-gradient-to-l from-transparent via-white/40 to-white/80 -rotate-45 origin-right" />
+      </div>
+    </div>
+  );
+};
+
+const Satellite: React.FC<{ orbitRadius?: number; speed?: number; startAngle?: number }> = ({ 
+  orbitRadius = 200, 
+  speed = 30, 
+  startAngle = 0 
+}) => {
+  const satelliteRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (satelliteRef.current && containerRef.current) {
+      gsap.to(containerRef.current, {
+        rotation: 360,
+        duration: speed,
+        repeat: -1,
+        ease: "none"
+      });
+      gsap.to(satelliteRef.current, {
+        rotation: -360,
+        duration: speed,
+        repeat: -1,
+        ease: "none"
+      });
+    }
+  }, [speed]);
+
+  return (
+    <div 
+      ref={containerRef}
+      className="absolute left-1/2 top-1/2 pointer-events-none"
+      style={{ 
+        width: orbitRadius * 2, 
+        height: orbitRadius * 2,
+        marginLeft: -orbitRadius,
+        marginTop: -orbitRadius,
+        transform: `rotate(${startAngle}deg)`
+      }}
+    >
+      <div 
+        ref={satelliteRef}
+        className="absolute"
+        style={{ left: orbitRadius * 2 - 8, top: orbitRadius - 4 }}
+      >
+        <svg width="16" height="8" viewBox="0 0 16 8" className="text-amber-300/60">
+          <rect x="0" y="2" width="4" height="4" fill="currentColor" opacity="0.8" />
+          <rect x="5" y="0" width="6" height="8" fill="currentColor" rx="1" />
+          <rect x="12" y="2" width="4" height="4" fill="currentColor" opacity="0.8" />
+        </svg>
+      </div>
+    </div>
+  );
+};
+
+const Spacecraft: React.FC<{ delay?: number; direction?: 'left' | 'right' }> = ({ delay = 0, direction = 'right' }) => {
+  const craftRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (craftRef.current) {
+      const animate = () => {
+        const startX = direction === 'right' ? -100 : window.innerWidth + 100;
+        const endX = direction === 'right' ? window.innerWidth + 100 : -100;
+        const startY = 50 + Math.random() * 200;
+        const wobble = (Math.random() - 0.5) * 100;
+        
+        gsap.set(craftRef.current, { x: startX, y: startY, opacity: 0 });
+        gsap.timeline({ delay: delay + Math.random() * 15, onComplete: animate })
+          .to(craftRef.current, { opacity: 0.7, duration: 0.5 })
+          .to(craftRef.current, { 
+            x: endX,
+            y: startY + wobble,
+            duration: 15 + Math.random() * 10,
+            ease: "none"
+          }, "<")
+          .to(craftRef.current, { opacity: 0, duration: 0.5 }, "-=0.5");
+      };
+      animate();
+    }
+  }, [delay, direction]);
+
+  return (
+    <div ref={craftRef} className="absolute pointer-events-none" style={{ left: 0, top: 0 }}>
+      <svg width="24" height="12" viewBox="0 0 24 12" className={`text-amber-400/50 ${direction === 'left' ? 'scale-x-[-1]' : ''}`}>
+        <ellipse cx="12" cy="6" rx="10" ry="4" fill="currentColor" opacity="0.6" />
+        <ellipse cx="12" cy="6" rx="6" ry="3" fill="currentColor" />
+        <ellipse cx="12" cy="4" rx="4" ry="2" fill="white" opacity="0.3" />
+        <circle cx="6" cy="8" r="1" fill="currentColor" opacity="0.8" />
+        <circle cx="12" cy="9" r="1" fill="currentColor" opacity="0.8" />
+        <circle cx="18" cy="8" r="1" fill="currentColor" opacity="0.8" />
+      </svg>
+    </div>
+  );
+};
+
+const TwinklingStar: React.FC<{ x: number; y: number; delay?: number }> = ({ x, y, delay = 0 }) => {
+  const starRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (starRef.current) {
+      gsap.to(starRef.current, {
+        opacity: 0.2,
+        scale: 0.5,
+        duration: 1 + Math.random() * 2,
+        repeat: -1,
+        yoyo: true,
+        ease: "sine.inOut",
+        delay: delay
+      });
+    }
+  }, [delay]);
+
+  return (
+    <div 
+      ref={starRef}
+      className="absolute w-1 h-1 bg-white rounded-full shadow-[0_0_4px_1px_rgba(255,255,255,0.5)]"
+      style={{ left: `${x}%`, top: `${y}%` }}
+    />
+  );
+};
+
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -300,6 +459,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
         <FloatingOrb className="w-6 h-6 bg-amber-400/10 blur-md top-40 right-[25%]" delay={1} />
         <FloatingOrb className="w-3 h-3 bg-amber-600/30 blur-sm bottom-40 left-[30%]" delay={2} />
         <FloatingOrb className="w-5 h-5 bg-amber-300/15 blur-md bottom-20 right-[15%]" delay={0.5} />
+        
+        {!prefersReducedMotion && (
+          <>
+            <TwinklingStar x={5} y={8} delay={0} />
+            <TwinklingStar x={15} y={15} delay={0.5} />
+            <TwinklingStar x={25} y={5} delay={1} />
+            <TwinklingStar x={35} y={20} delay={1.5} />
+            <TwinklingStar x={45} y={10} delay={0.3} />
+            <TwinklingStar x={55} y={25} delay={0.8} />
+            <TwinklingStar x={65} y={8} delay={1.2} />
+            <TwinklingStar x={75} y={18} delay={0.6} />
+            <TwinklingStar x={85} y={12} delay={1.8} />
+            <TwinklingStar x={92} y={22} delay={0.2} />
+            <TwinklingStar x={8} y={35} delay={1.1} />
+            <TwinklingStar x={88} y={38} delay={0.9} />
+            
+            <ShootingStar delay={0} startX={100} startY={50} />
+            <ShootingStar delay={4} startX={300} startY={20} />
+            <ShootingStar delay={8} startX={500} startY={80} />
+            <ShootingStar delay={12} startX={200} startY={100} />
+            <ShootingStar delay={16} startX={600} startY={40} />
+            
+            <Satellite orbitRadius={280} speed={45} startAngle={0} />
+            <Satellite orbitRadius={350} speed={60} startAngle={120} />
+            
+            <Spacecraft delay={2} direction="right" />
+            <Spacecraft delay={20} direction="left" />
+          </>
+        )}
         
         {[...Array(particleCount)].map((_, i) => (
           <div

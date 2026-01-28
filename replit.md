@@ -81,12 +81,18 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-28: Enhanced hero section with space-themed background animations
+  - Shooting stars with glowing trails that streak across the sky
+  - Orbiting satellites that circle around the hero section
+  - Spacecraft/UFOs that drift across the background
+  - Twinkling stars scattered throughout the hero section
+  - All space animations respect reduced motion preferences
 - 2026-01-28: Added beautiful animated landing page
   - GSAP-powered scroll animations and parallax effects
   - Classical Greek/Roman themed design with columns, laurels, statues
   - Five scrollytelling sections: hero, philosophy, three fates, testimonials, CTA
   - Floating particles and orbs with ambient animations
-  - Session-based navigation (remembers if user entered app)
+  - URL hash-based navigation (no browser storage)
 - 2026-01-28: Renamed app from Aetheria to Simili
   - Updated all UI text and branding
   - Enhanced SEO with comprehensive meta tags
