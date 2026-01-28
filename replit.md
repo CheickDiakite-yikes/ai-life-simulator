@@ -46,3 +46,9 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 - 2026-01-28: Database integration complete with Drizzle ORM
 - API endpoints for users, saves, events, and chat messages
 - Removed API key modal - uses environment secrets instead
+- 2026-01-28: Full save/load game system with history persistence
+  - Added `history` JSONB column to `game_saves` table for full game state
+  - Auto-save with 2-second debounce on game state changes
+  - SavedGamesSection shows up to 6 recent saves on home screen
+  - Intelligent save naming based on mode/character
+  - User management via localStorage for persistence across sessions
