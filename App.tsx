@@ -12,7 +12,11 @@ import { addRecentStart, getRecentStarts } from './services/simulationMemory';
 import { logDebug, logError, logWarn } from './services/logger';
 import { saveGame, loadSavedGames, loadGame, deleteSavedGame, SavedGame } from './services/saveGameService';
 
-const App: React.FC = () => {
+interface AppProps {
+  onBackToLanding?: () => void;
+}
+
+const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [gameStarted, setGameStarted] = useState(false);

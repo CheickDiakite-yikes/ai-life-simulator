@@ -11,11 +11,14 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - Gemini AI integration using GEMINI_API_KEY environment secret
 - All data stored in PostgreSQL - NO localStorage or browser storage
 - Enhanced SEO with meta tags, Open Graph, and structured data
+- Beautiful animated landing page with GSAP scrollytelling
 
 ## Architecture
 
 ### Frontend (React + Vite)
+- `AppWrapper.tsx` - Entry point handling landing page vs app routing
 - `App.tsx` - Main application with authentication state and game management
+- `components/LandingPage.tsx` - Animated landing page with GSAP scrollytelling
 - `components/AuthPage.tsx` - Email/password signup and login form
 - `components/Dashboard.tsx` - Main game interface
 - `components/SavedGamesSection.tsx` - Display and load saved games
@@ -78,6 +81,12 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-28: Added beautiful animated landing page
+  - GSAP-powered scroll animations and parallax effects
+  - Classical Greek/Roman themed design with columns, laurels, statues
+  - Five scrollytelling sections: hero, philosophy, three fates, testimonials, CTA
+  - Floating particles and orbs with ambient animations
+  - Session-based navigation (remembers if user entered app)
 - 2026-01-28: Renamed app from Aetheria to Simili
   - Updated all UI text and branding
   - Enhanced SEO with comprehensive meta tags

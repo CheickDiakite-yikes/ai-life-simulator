@@ -1,0 +1,24 @@
+I need you to build a high-fidelity 3D scrollytelling website using React, Next.js, Tailwind, and React-Three-Fiber.
+
+The Subject: A realistic 3D nasa space ship.
+
+The Scene: Dark mode (Black background), Orange accents.
+
+Core Architecture Requirements:
+
+Canvas: Full-screen fixed background.
+
+Model: Procedurally generate a space ship composed of distinct pieces and segments (not just blocks and no texture or real design) so that we can animate an 'exploded view' where pieces are coming together and then the rocket is taking off. 
+
+Lighting: Studio lighting but on a moon, with strong black and dim lights (Fresnel) to separate the ship/shuttle from the background.
+
+Scroll Animation Timeline (Use GSAP ScrollTrigger):
+0-20%: zoomed out view of a disassembled ship on a moon (with great moon texture) in different pieces. Large ‘A ‘NEW AGE BEGINS” text scrolls in in (parallax).
+20-30-40-50%: Camera zooms in close to the ship as if you are moon walking closer to it and it is assembling its pieces as you “walk” closer each piece represents something about the new age. In this case a pice of the ship represents AI, another pieces as you keep walking will represent quantum, then another piece as you keep walking will be bioscience. then another piece will represent robotics. all pieces tell a story and should be highlighted with great camera control and have detailed animated text info and overlayed info as to why they belong in the “thesis of a new age”. from exploded view to non exploded and put together. so then all of the pieces will come together to form the ship as the user scrolls and gets closer, but still be able to see the full ship. 
+50-80%: The non-'Exploded View'. the user sees the ship, they keep scrolling and there is a count down now, 3,2,1, as they scroll. each count also is followed by motivational messages. after 1, we say blast off and animate blast off.
+80-100%: we blast off into the future towards another planet in a few scrolls. with again great animation and story telling through text. 
+
+Performance:
+Use drei for helpers. Ensure smooth camera damping (lerping) so the movement feels heavy and premium, not jittery.
+
+Please set up the project structure, the 3D scene, and the scroll logic.
