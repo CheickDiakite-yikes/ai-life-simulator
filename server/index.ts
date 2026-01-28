@@ -66,15 +66,17 @@ app.post("/api/saves", async (req, res) => {
       name: saveName,
       mode: gameState.mode || 'REAL_LIFE',
       theme: gameState.theme,
-      currentDate: gameState.currentDate,
+      gameDate: gameState.currentDate,
       timeStep: gameState.timeStep,
       character: gameState.character,
       currentEvent: gameState.currentEvent,
       history: gameState.history || []
     });
     res.json(save);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to create save" });
+  } catch (error: any) {
+    console.log("Failed to create save:", error?.message || error);
+    console.log("Stack:", error?.stack);
+    res.status(500).json({ error: "Failed to create save", details: error?.message });
   }
 });
 
@@ -87,7 +89,7 @@ app.put("/api/saves/:id", async (req, res) => {
     const save = await storage.updateSave(parseInt(req.params.id), {
       mode: gameState.mode,
       theme: gameState.theme,
-      currentDate: gameState.currentDate,
+      gameDate: gameState.currentDate,
       timeStep: gameState.timeStep,
       character: gameState.character,
       currentEvent: gameState.currentEvent,

@@ -24,7 +24,7 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
 
 ### Database Schema
 - `users` - User profiles
-- `game_saves` - Game state saves with character data
+- `game_saves` - Game state saves with character data, history, and current event
 - `life_events` - Historical life events for each save
 - `chat_messages` - AI chat history
 
@@ -52,3 +52,5 @@ Aetheria is a hyper-realistic life simulator using React, TypeScript, and Vite, 
   - SavedGamesSection shows up to 6 recent saves on home screen
   - Intelligent save naming based on mode/character
   - User management via localStorage for persistence across sessions
+  - Fixed: Renamed `current_date` to `game_date` column (PostgreSQL reserved word conflict)
+  - Fixed: Improved user verification to handle stale localStorage data

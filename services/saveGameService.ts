@@ -41,8 +41,20 @@ export interface SaveGameData {
 const getOrCreateUser = async (): Promise<number> => {
   let savedUserId = localStorage.getItem('aetheria_user_id');
   
+  // Verify the stored user still exists
   if (savedUserId) {
-    return parseInt(savedUserId);
+    try {
+      const checkResponse = await fetch(`${API_BASE}/users/${savedUserId}`);
+      if (checkResponse.ok) {
+        logDebug('Using existing user', { userId: savedUserId });
+        return parseInt(savedUserId);
+      }
+      // User doesn't exist, clear localStorage and create new one
+      localStorage.removeItem('aetheria_user_id');
+      logDebug('Stored user not found, creating new one');
+    } catch (error) {
+      localStorage.removeItem('aetheria_user_id');
+    }
   }
   
   const username = `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
@@ -55,6 +67,8 @@ const getOrCreateUser = async (): Promise<number> => {
     });
     
     if (!response.ok) {
+      const errorText = await response.text();
+      logError('Failed to create user - server response', { status: response.status, error: errorText });
       throw new Error('Failed to create user');
     }
     
@@ -186,7 +200,7 @@ export const loadGame = async (saveId: number): Promise<GameState | null> => {
       character: save.character,
       history: (save.history as LifeEvent[]) || [],
       currentEvent: save.currentEvent,
-      currentDate: save.currentDate || '',
+      currentDate: save.gameDate || '',
       timeStep: (save.timeStep || 'Year') as any,
       isLoading: false,
       mode: save.mode as GameMode,

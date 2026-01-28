@@ -13,7 +13,7 @@ export const gameSaves = pgTable("game_saves", {
   name: text("name").notNull(),
   mode: text("mode").notNull(),
   theme: text("theme"),
-  currentDate: text("current_date"),
+  gameDate: text("game_date"),
   timeStep: text("time_step"),
   character: jsonb("character"),
   currentEvent: jsonb("current_event"),
