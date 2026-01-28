@@ -3,7 +3,9 @@ import { logDebug, logWarn } from './logger';
 const LOCAL_STORAGE_KEY = 'AETHERIA_API_KEY';
 
 export const getEnvApiKey = (): string => {
-  const envKey = (process.env.API_KEY || process.env.GEMINI_API_KEY) as string | undefined;
+  // Check for Vite environment variables
+  const envKey = (import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY) as string | undefined;
+  
   if (!envKey || envKey === 'undefined' || envKey === 'null') return '';
   return envKey;
 };
