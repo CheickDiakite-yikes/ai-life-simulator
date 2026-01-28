@@ -151,11 +151,18 @@ export const generateInitialCharacter = async (mode: GameMode, userInputs?: any)
 
   if (!response.text) throw new Error("Failed to generate character");
   
-  const rawChar = JSON.parse(response.text);
+  let rawChar;
+  try {
+    rawChar = JSON.parse(response.text);
+  } catch (e) {
+    throw new Error("Failed to parse character JSON: " + response.text);
+  }
+
+  if (!rawChar) throw new Error("Generated character data is empty.");
   
   // Convert array of metrics back to Record for application use
   const metrics: Record<string, number> = {};
-  if (Array.isArray(rawChar.hiddenMetrics)) {
+  if (rawChar.hiddenMetrics && Array.isArray(rawChar.hiddenMetrics)) {
     rawChar.hiddenMetrics.forEach((m: any) => {
       if (m.name && typeof m.value === 'number') {
         metrics[m.name] = m.value;
@@ -308,12 +315,22 @@ export const advanceLife = async (
     }
   });
 
-  const data = JSON.parse(response.text || '{}');
+  let data;
+  try {
+    data = JSON.parse(response.text || '{}');
+  } catch (e) {
+    throw new Error("Failed to parse simulation JSON: " + response.text);
+  }
+
+  if (!data || !data.updatedCharacter) {
+      throw new Error("Simulation returned invalid data structure (missing updatedCharacter).");
+  }
+
   const rawUpdatedChar = data.updatedCharacter;
   
   // Convert array of metrics back to Record for application use
   const metrics: Record<string, number> = {};
-  if (Array.isArray(rawUpdatedChar.hiddenMetrics)) {
+  if (rawUpdatedChar.hiddenMetrics && Array.isArray(rawUpdatedChar.hiddenMetrics)) {
     rawUpdatedChar.hiddenMetrics.forEach((m: any) => {
       if (m.name && typeof m.value === 'number') {
         metrics[m.name] = m.value;
