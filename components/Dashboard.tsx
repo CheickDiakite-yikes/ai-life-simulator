@@ -213,6 +213,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [mobileTab, setMobileTab] = useState<'profile' | 'feed' | 'news'>('feed');
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const safeAttributes = character?.attributes || {
+    health: 100,
+    happiness: 100,
+    energy: 100,
+    personalWealth: 0,
+    familyWealth: 0,
+    intelligence: 50,
+    social: 50
+  };
+
+  if (!character || !character.attributes) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0c0a09]">
+        <div className="text-stone-400 text-center">
+          <div className="w-8 h-8 border-2 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="font-heading">Loading character data...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Auto-scroll to bottom of feed
   useEffect(() => {
     if (scrollRef.current) {

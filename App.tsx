@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GameMode, Character, GameState, LifeEvent } from './types';
 import { generateInitialCharacter, advanceLife, getRealWorldContext } from './services/geminiService';
 import { Dashboard } from './components/Dashboard';
 import { GreekBackground } from './components/GreekBackground';
 import { ChatInterface } from './components/ChatInterface';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { apiService } from './services/apiService';
 import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, Sparkles, MapPin, User, Scroll } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -15,10 +16,11 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   
-  // Selection Screen State
+  const [userId, setUserId] = useState<number | null>(null);
+  const [currentSaveId, setCurrentSaveId] = useState<number | null>(null);
+  
   const [selectedModeIndex, setSelectedModeIndex] = useState(0);
   
-  // Swipe State
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -34,6 +36,53 @@ const App: React.FC = () => {
   });
 
   const [customInputs, setCustomInputs] = useState({ name: '', location: '' });
+
+  useEffect(() => {
+    const initUser = async () => {
+      try {
+        const guestId = localStorage.getItem('aetheria_guest_id') || `guest_${Date.now()}`;
+        localStorage.setItem('aetheria_guest_id', guestId);
+        const user = await apiService.getOrCreateUser(guestId);
+        setUserId(user.id);
+      } catch (e) {
+        console.log('Backend not available, running without persistence');
+      }
+    };
+    initUser();
+  }, []);
+
+  const saveGameProgress = useCallback(async (state: GameState, saveId: number | null, previousEvent: LifeEvent | null) => {
+    if (!userId) return saveId;
+    
+    try {
+      if (!saveId) {
+        const save = await apiService.createGameSave({
+          userId,
+          name: `${state.character.name}'s Life`,
+          mode: state.mode,
+          theme: state.theme,
+          currentDate: state.currentDate,
+          timeStep: state.timeStep,
+          character: state.character,
+          currentEvent: state.currentEvent,
+          history: state.history
+        });
+        return save.id;
+      } else {
+        await apiService.updateGameSave(saveId, {
+          currentDate: state.currentDate,
+          timeStep: state.timeStep,
+          character: state.character,
+          currentEvent: state.currentEvent,
+          newEvent: previousEvent
+        });
+        return saveId;
+      }
+    } catch (e) {
+      console.error('Failed to save game:', e);
+      return saveId;
+    }
+  }, [userId]);
 
   const modes = [
     {
@@ -112,7 +161,7 @@ const App: React.FC = () => {
         ]
       };
 
-      setGameState({
+      const newState: GameState = {
         character,
         history: [],
         currentEvent: initialEvent,
@@ -121,8 +170,13 @@ const App: React.FC = () => {
         isLoading: false,
         mode,
         theme: mode === GameMode.ALTERNATIVE ? 'fantasy' : 'modern'
-      });
+      };
+      
+      setGameState(newState);
       setGameStarted(true);
+      
+      const newSaveId = await saveGameProgress(newState, null, null);
+      if (newSaveId) setCurrentSaveId(newSaveId);
     } catch (err) {
       handleApiError(err);
     } finally {
@@ -145,14 +199,20 @@ const App: React.FC = () => {
         gameState.timeStep,
         context
       );
-      setGameState(prev => ({
-        ...prev,
+      
+      const previousEvent = gameState.currentEvent;
+      const newState = {
+        ...gameState,
         character,
         currentEvent: event,
         currentDate: event.date,
-        history: [...prev.history, prev.currentEvent!],
+        history: [...gameState.history, previousEvent!],
         isLoading: false
-      }));
+      };
+      
+      setGameState(newState);
+      
+      await saveGameProgress(newState, currentSaveId, previousEvent);
     } catch (err) {
       handleApiError(err);
       setGameState(prev => ({ ...prev, isLoading: false }));
