@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { GameMode, Character, GameState, LifeEvent } from './types';
 import { generateInitialCharacter, advanceLife, getRealWorldContext } from './services/geminiService';
 import { Dashboard } from './components/Dashboard';
-import { StarBackground } from './components/StarBackground';
+import { GreekBackground } from './components/GreekBackground';
 import { ChatInterface } from './components/ChatInterface';
 import { ApiKeyModal } from './components/ApiKeyModal';
-import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, Sparkles, MapPin, User } from 'lucide-react';
+import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, Sparkles, MapPin, User, Scroll } from 'lucide-react';
 
 const App: React.FC = () => {
   const [apiKeyReady, setApiKeyReady] = useState(false);
@@ -42,10 +42,11 @@ const App: React.FC = () => {
       subtitle: "Fate is blind",
       desc: "Experience total randomization. You have no control over your birth, genetics, or parents.",
       icon: Shuffle,
-      color: "text-purple-400",
-      bgGradient: "from-purple-500/20 to-indigo-500/10",
-      border: "border-purple-500/30",
-      buttonBg: "bg-purple-600 hover:bg-purple-500",
+      color: "text-stone-600",
+      iconColor: "text-amber-700",
+      bgGradient: "bg-stone-100",
+      border: "border-amber-700/40",
+      buttonBg: "bg-[#451a03] hover:bg-[#78350f] text-amber-100 border border-amber-500/30",
     },
     {
       mode: GameMode.FAKE,
@@ -53,10 +54,11 @@ const App: React.FC = () => {
       subtitle: "Design your destiny",
       desc: "Hand-pick your starting circumstances. Choose your name and birthplace.",
       icon: UserPlus,
-      color: "text-cyan-400",
-      bgGradient: "from-cyan-500/20 to-blue-500/10",
-      border: "border-cyan-500/30",
-      buttonBg: "bg-cyan-600 hover:bg-cyan-500",
+      color: "text-stone-600",
+      iconColor: "text-amber-700",
+      bgGradient: "bg-stone-100",
+      border: "border-amber-700/40",
+      buttonBg: "bg-[#451a03] hover:bg-[#78350f] text-amber-100 border border-amber-500/30",
     },
     {
       mode: GameMode.ALTERNATIVE,
@@ -64,10 +66,11 @@ const App: React.FC = () => {
       subtitle: "Into the multiverse",
       desc: "A universe where magic, superheroes, and the supernatural are real possibilities.",
       icon: Wand,
-      color: "text-pink-400",
-      bgGradient: "from-pink-500/20 to-rose-500/10",
-      border: "border-pink-500/30",
-      buttonBg: "bg-pink-600 hover:bg-pink-500",
+      color: "text-stone-600",
+      iconColor: "text-amber-700",
+      bgGradient: "bg-stone-100",
+      border: "border-amber-700/40",
+      buttonBg: "bg-[#451a03] hover:bg-[#78350f] text-amber-100 border border-amber-500/30",
     }
   ];
 
@@ -80,7 +83,7 @@ const App: React.FC = () => {
        setApiKeyReady(false);
        setError("API Key Error: The key was reported as leaked or invalid. Please select a new one.");
     } else {
-       setError("Cosmic interference detected: " + msg);
+       setError("The Oracles are silent: " + msg);
     }
   };
 
@@ -197,7 +200,7 @@ const App: React.FC = () => {
   if (!apiKeyReady) {
     return (
       <>
-        <StarBackground />
+        <GreekBackground />
         <ApiKeyModal onReady={onKeyReady} forceSelection={forceKeySelection} />
       </>
     );
@@ -207,110 +210,118 @@ const App: React.FC = () => {
     const activeMode = modes[selectedModeIndex];
 
     return (
-      <div className="h-screen w-full flex flex-col items-center overflow-hidden relative text-center font-sans">
-        <StarBackground />
+      <div className="h-screen w-full flex flex-col items-center overflow-hidden relative text-center font-serif">
+        <GreekBackground />
         
         {/* Header */}
         <div className="flex-none pt-8 md:pt-12 pb-4 z-10">
-          <h1 className="text-4xl md:text-6xl font-bold tracking-widest font-heading bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-cyan-400 to-purple-400 animate-gradient-x mb-2">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-[0.2em] font-heading text-[#e7e5e4] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 gold-text">
             AETHERIA
           </h1>
-          <p className="text-sm md:text-base text-gray-400 font-light tracking-wide uppercase">
-            Initialize Simulation
-          </p>
+          <div className="flex items-center justify-center gap-4">
+             <div className="h-px w-12 bg-amber-600/50"></div>
+             <p className="text-sm md:text-base text-stone-400 font-light tracking-widest uppercase font-heading">
+               Initialize Simulation
+             </p>
+             <div className="h-px w-12 bg-amber-600/50"></div>
+          </div>
         </div>
 
         {/* Carousel Container */}
-        <div className="flex-1 w-full max-w-6xl mx-auto flex items-center justify-center relative z-10 px-4">
+        <div className="flex-1 w-full max-w-6xl mx-auto flex items-center justify-center relative z-10 px-4 min-h-0">
           
           {/* Mobile Navigation Arrows */}
           <button 
             onClick={prevMode}
-            className="md:hidden absolute left-2 z-20 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            className="md:hidden absolute left-0 z-30 p-3 bg-stone-900/80 backdrop-blur-md rounded-r-xl border-y border-r border-amber-700/30 text-amber-100 hover:bg-stone-800 transition-colors shadow-lg"
+            aria-label="Previous Mode"
           >
             <ChevronLeft size={24} />
           </button>
           
           <button 
             onClick={nextMode}
-            className="md:hidden absolute right-2 z-20 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            className="md:hidden absolute right-0 z-30 p-3 bg-stone-900/80 backdrop-blur-md rounded-l-xl border-y border-l border-amber-700/30 text-amber-100 hover:bg-stone-800 transition-colors shadow-lg"
+            aria-label="Next Mode"
           >
             <ChevronRight size={24} />
           </button>
 
-          {/* Cards Wrapper - Added swipe handlers */}
+          {/* Cards Wrapper */}
           <div 
-            className="w-full flex md:gap-8 items-center justify-center h-full select-none"
+            className="w-full flex md:gap-8 items-center justify-center h-full select-none relative"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
           >
             {modes.map((mode, idx) => {
               const isActive = idx === selectedModeIndex;
-              // On mobile, only render the active card. On desktop, render all but highlight active.
-              const isHiddenOnMobile = !isActive;
               
               return (
                 <div 
                   key={mode.mode}
                   onClick={() => !isActive && setSelectedModeIndex(idx)}
                   className={`
-                    transition-all duration-500 ease-in-out
-                    ${isHiddenOnMobile ? 'hidden md:flex md:scale-90 md:opacity-50 md:blur-[1px] cursor-pointer hover:opacity-75' : 'flex scale-100 opacity-100 blur-0'}
-                    ${isActive ? 'md:scale-105 md:opacity-100 md:blur-0 z-20 cursor-default' : 'z-10'}
-                    relative w-full md:w-[350px] max-w-sm
+                    transition-all duration-500 ease-out
+                    ${isActive 
+                      ? 'opacity-100 scale-100 z-20 translate-x-0' 
+                      : 'opacity-0 scale-95 z-10 absolute pointer-events-none md:relative md:opacity-60 md:scale-90 md:blur-[1px] md:pointer-events-auto md:hover:opacity-80'
+                    }
+                    w-full max-w-sm md:w-[350px] flex justify-center
                   `}
                 >
-                   {/* Card Body */}
+                   {/* Card Body - Marble Tablet Look */}
                    <div className={`
-                      w-full bg-[#0B101B]/80 backdrop-blur-xl border ${isActive ? mode.border : 'border-white/5'} 
-                      rounded-3xl p-6 md:p-8 flex flex-col items-center text-center shadow-2xl
-                      ${isActive ? 'shadow-[0_0_50px_rgba(0,0,0,0.5)]' : ''}
-                      h-[55vh] md:h-[500px] justify-between
+                      w-full marble-texture border-4 ${isActive ? 'border-[#b45309]' : 'border-stone-600/30'} 
+                      rounded-t-[40px] rounded-b-xl p-6 md:p-8 flex flex-col items-center text-center shadow-2xl
+                      ${isActive ? 'shadow-[0_0_50px_rgba(0,0,0,0.7)]' : ''}
+                      min-h-[480px] md:h-[500px] justify-between relative overflow-hidden bg-[#e7e5e4]
                    `}>
+                      {/* Inner Border Decoration */}
+                      <div className="absolute inset-2 border border-stone-400/30 rounded-t-[32px] rounded-b-lg pointer-events-none"></div>
                       
                       {/* Top Section */}
-                      <div className="flex flex-col items-center">
-                        <div className={`mb-6 p-4 rounded-2xl bg-gradient-to-br ${mode.bgGradient} border border-white/10 shadow-inner`}>
-                          <mode.icon size={48} className={mode.color} />
+                      <div className="flex flex-col items-center relative z-10 w-full">
+                        <div className="mb-4 md:mb-6 p-4">
+                          <mode.icon size={56} className={`${mode.iconColor} drop-shadow-md`} strokeWidth={1.5} />
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-1">{mode.title}</h2>
-                        <span className={`text-xs font-bold uppercase tracking-widest mb-4 ${mode.color} opacity-80`}>
+                        <h2 className="text-2xl font-bold text-stone-800 mb-2 font-heading tracking-wider">{mode.title}</h2>
+                        <span className="text-xs font-bold uppercase tracking-[0.2em] mb-4 text-stone-500 border-b border-stone-300 pb-1">
                           {mode.subtitle}
                         </span>
-                        <p className="text-sm text-gray-400 leading-relaxed mb-6">
+                        <p className="text-sm text-stone-600 leading-relaxed mb-6 font-serif italic px-2">
                           {mode.desc}
                         </p>
                       </div>
 
                       {/* Middle/Bottom Section (Inputs or Decoration) */}
-                      <div className="w-full">
+                      <div className="w-full relative z-10 mt-auto">
                         {mode.mode === GameMode.FAKE ? (
                            <div className="space-y-3 mb-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
                              <div className="relative">
-                               <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                               <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
                                <input 
                                  type="text" 
                                  placeholder="Name" 
                                  value={customInputs.name}
                                  onChange={(e) => setCustomInputs({...customInputs, name: e.target.value})}
-                                 className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-sm text-white focus:border-cyan-500 focus:outline-none transition-colors"
+                                 className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2.5 pl-9 pr-3 text-sm text-stone-800 placeholder-stone-500 focus:border-amber-600 focus:outline-none transition-colors font-serif"
                                />
                              </div>
                              <div className="relative">
-                               <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                               <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
                                <input 
                                  type="text" 
                                  placeholder="Birthplace" 
                                  value={customInputs.location}
                                  onChange={(e) => setCustomInputs({...customInputs, location: e.target.value})}
-                                 className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-sm text-white focus:border-cyan-500 focus:outline-none transition-colors"
+                                 className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2.5 pl-9 pr-3 text-sm text-stone-800 placeholder-stone-500 focus:border-amber-600 focus:outline-none transition-colors font-serif"
                                />
                              </div>
                            </div>
                         ) : (
-                          <div className="mb-8 opacity-20">
-                             <Sparkles size={40} className={`mx-auto animate-pulse ${mode.color}`} />
+                          <div className="mb-8 opacity-40">
+                             <Scroll size={32} className="mx-auto text-stone-400" />
                           </div>
                         )}
 
@@ -318,18 +329,20 @@ const App: React.FC = () => {
                           onClick={(e) => { e.stopPropagation(); startGame(mode.mode); }}
                           disabled={loading}
                           className={`
-                            w-full py-3.5 rounded-xl text-sm font-bold text-white tracking-wide shadow-lg transition-all transform active:scale-95
-                            ${mode.buttonBg} disabled:opacity-50 disabled:cursor-not-allowed
+                            w-full py-3.5 rounded-lg text-sm font-bold tracking-[0.15em] shadow-lg transition-all transform active:scale-95
+                            ${mode.buttonBg} disabled:opacity-50 disabled:cursor-not-allowed font-heading
+                            relative overflow-hidden group
                           `}
                         >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                           {loading ? (
                             <span className="flex items-center justify-center gap-2">
-                               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                               INITIALIZING...
+                               <div className="w-4 h-4 border-2 border-amber-200/30 border-t-amber-100 rounded-full animate-spin"></div>
+                               DIVINING...
                             </span>
                           ) : (
                             <span className="flex items-center justify-center gap-2">
-                               INITIALIZE <Play size={14} fill="currentColor" />
+                               INITIALIZE <Play size={12} fill="currentColor" />
                             </span>
                           )}
                         </button>
@@ -350,13 +363,13 @@ const App: React.FC = () => {
                 <button 
                   key={idx}
                   onClick={() => setSelectedModeIndex(idx)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === selectedModeIndex ? 'bg-white w-6' : 'bg-white/20 hover:bg-white/40'}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === selectedModeIndex ? 'bg-amber-500 w-6' : 'bg-stone-600 hover:bg-stone-400'}`}
                 />
               ))}
            </div>
            
            {error && (
-             <div className="max-w-xs text-xs text-red-400 bg-red-900/20 border border-red-500/20 p-2 rounded text-center">
+             <div className="max-w-xs text-xs text-red-300 bg-red-900/40 border border-red-500/30 p-2 rounded text-center font-serif">
                {error}
              </div>
            )}
@@ -368,7 +381,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative min-h-screen">
-      <StarBackground />
+      <GreekBackground />
       <Dashboard 
         character={gameState.character}
         currentEvent={gameState.currentEvent}

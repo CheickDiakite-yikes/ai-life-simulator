@@ -44,7 +44,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
     return (
       <button 
         onClick={onOpen}
-        className="hidden md:block fixed bottom-6 right-6 p-4 bg-purple-600 rounded-full shadow-lg hover:bg-purple-500 transition-colors z-40"
+        className="hidden md:block fixed bottom-6 right-6 p-4 bg-amber-700 rounded-full shadow-lg hover:bg-amber-600 transition-colors z-40 border border-amber-500/30"
       >
         <MessageCircle size={24} color="white" />
       </button>
@@ -52,38 +52,38 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
   }
 
   return (
-    <div className="fixed bottom-[56px] md:bottom-6 right-0 md:right-6 w-full md:w-96 h-[50vh] md:h-[500px] glass-panel md:rounded-xl rounded-t-xl flex flex-col z-40 shadow-2xl mx-auto border-x-0 md:border-x border-b-0 md:border-b">
-      <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 rounded-t-xl">
-        <h3 className="font-semibold text-purple-300">Aetheria Assistant</h3>
-        <button onClick={onClose}><X size={18} className="text-gray-400 hover:text-white" /></button>
+    <div className="fixed bottom-[56px] md:bottom-6 right-0 md:right-6 w-full md:w-96 h-[50vh] md:h-[500px] bg-[#1c1917] md:rounded-sm rounded-t-sm flex flex-col z-40 shadow-2xl mx-auto border border-stone-700">
+      <div className="p-4 border-b border-stone-700 flex justify-between items-center bg-[#292524] rounded-t-sm">
+        <h3 className="font-bold text-amber-500 font-heading tracking-wider">Oracle of Aetheria</h3>
+        <button onClick={onClose}><X size={18} className="text-stone-500 hover:text-stone-300" /></button>
       </div>
       
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0c0a09]">
         {history.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-purple-600/80 text-white' : 'bg-slate-700/80 text-gray-200'}`}>
+            <div className={`max-w-[80%] p-3 rounded-sm text-sm font-serif ${msg.role === 'user' ? 'bg-amber-900/40 border border-amber-700/30 text-amber-100' : 'bg-stone-800/50 border border-stone-700 text-stone-300'}`}>
               {msg.parts[0].text}
             </div>
           </div>
         ))}
-        {loading && <div className="text-gray-400 text-xs flex items-center gap-2"><Loader2 className="animate-spin" size={12}/> AI is typing...</div>}
+        {loading && <div className="text-stone-500 text-xs flex items-center gap-2 font-serif"><Loader2 className="animate-spin" size={12}/> The Oracle is thinking...</div>}
       </div>
 
-      <div className="p-3 border-t border-white/10 flex gap-2 bg-[#0d1117]">
+      <div className="p-3 border-t border-stone-700 flex gap-2 bg-[#1c1917]">
         <input 
           type="text" 
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask about the game..."
-          className="flex-1 bg-black/30 border border-white/10 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+          placeholder="Ask the Oracle..."
+          className="flex-1 bg-[#0c0a09] border border-stone-700 rounded-sm px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-700 font-serif"
         />
         <button 
           onClick={handleSend}
           disabled={loading}
-          className="p-2 bg-purple-600 rounded-md hover:bg-purple-500 disabled:opacity-50"
+          className="p-2 bg-amber-800 rounded-sm hover:bg-amber-700 disabled:opacity-50 text-amber-100"
         >
-          <Send size={16} color="white" />
+          <Send size={16} />
         </button>
       </div>
     </div>

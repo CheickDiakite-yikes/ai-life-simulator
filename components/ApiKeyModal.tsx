@@ -1,15 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-// Removing conflicting global declaration as window.aistudio is already defined in the environment
-// declare global {
-//   interface Window {
-//     aistudio?: {
-//       hasSelectedApiKey: () => Promise<boolean>;
-//       openSelectKey: () => Promise<void>;
-//     };
-//   }
-// }
-
 export const ApiKeyModal: React.FC<{ onReady: () => void; forceSelection?: boolean }> = ({ onReady, forceSelection }) => {
   const [hasKey, setHasKey] = useState(false);
   const [loading, setLoading] = useState(!forceSelection);
@@ -57,24 +47,24 @@ export const ApiKeyModal: React.FC<{ onReady: () => void; forceSelection?: boole
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md">
-      <div className="bg-slate-900 border border-purple-500/50 p-8 rounded-2xl max-w-md w-full shadow-2xl shadow-purple-900/20 text-center">
-        <h2 className="text-2xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400">
+      <div className="bg-[#1c1917] border border-amber-700/50 p-8 rounded-sm max-w-md w-full shadow-2xl shadow-amber-900/20 text-center">
+        <h2 className="text-2xl font-bold mb-4 font-heading tracking-wider text-amber-500">
           {forceSelection ? "API Key Issue" : "Aetheria Access"}
         </h2>
-        <p className="text-gray-300 mb-6">
+        <p className="text-stone-400 mb-6 font-serif">
           {forceSelection 
             ? "Your previous API key was reported as leaked or invalid. Please select a new API key to continue."
             : "To access the advanced AI features (Video Generation, High-Res Imaging, Thinking Models), you must connect your Google AI Studio account."
           }
         </p>
-        <p className="text-xs text-gray-500 mb-6">
-           Requires a paid project for some models. See <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="underline hover:text-purple-400">billing documentation</a>.
+        <p className="text-xs text-stone-600 mb-6 font-serif">
+           Requires a paid project for some models. See <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="underline hover:text-amber-400">billing documentation</a>.
         </p>
         <button
           onClick={handleSelectKey}
-          className="w-full py-3 px-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-lg transition-all transform hover:scale-105"
+          className="w-full py-3 px-6 bg-[#451a03] hover:bg-[#78350f] text-amber-100 font-bold tracking-widest rounded-sm transition-all transform hover:scale-105 border border-amber-700/30 font-heading"
         >
-          Select API Key
+          SELECT API KEY
         </button>
       </div>
     </div>
