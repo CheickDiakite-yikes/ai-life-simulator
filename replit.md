@@ -81,6 +81,12 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-28: Enhanced SEO with Open Graph image for social sharing
+  - Added og-image.png to public folder for social previews
+  - Complete Open Graph meta tags (og:image, og:url, og:title, etc.)
+  - Twitter Card meta tags with large image support
+  - Updated canonical URL to https://simili-ai.replit.app
+  - Enhanced JSON-LD structured data
 - 2026-01-28: Updated README.md with comprehensive contribution guidelines
   - Local development setup instructions
   - Project structure documentation
