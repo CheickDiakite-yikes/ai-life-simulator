@@ -376,6 +376,13 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         isLoading: false
       }));
     } catch (err) {
+      logError('handleChoice failed', { 
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+        choiceId,
+        choiceText,
+        currentDate: gameState.currentDate
+      });
       handleApiError(err);
       setGameState(prev => ({ ...prev, isLoading: false }));
     }

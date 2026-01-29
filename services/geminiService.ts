@@ -712,7 +712,7 @@ export const advanceLife = async (
     throw new Error("Simulation returned invalid data structure (missing updatedCharacter or newEvent).");
   }
 
-  const rawUpdatedChar = data.updatedCharacter;
+  let rawUpdatedChar = data.updatedCharacter;
   const rawEvent = data.newEvent;
   if (!rawEvent.type) {
     rawEvent.type = 'neutral';
