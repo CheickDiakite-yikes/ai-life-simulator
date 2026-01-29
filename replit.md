@@ -81,6 +81,11 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-29: Redesigned simulation settings UI
+  - Added settings button (gear icon) next to Initialize button on each game mode card
+  - Settings open in focused modal popup instead of overlay below cards
+  - Modal includes realism intensity, research mode, birth distribution, and start year
+  - Cleaner design that doesn't cover the cards
 - 2026-01-28: Enhanced SEO with Open Graph image for social sharing
   - Added og-image.png to public folder for social previews
   - Complete Open Graph meta tags (og:image, og:url, og:title, etc.)

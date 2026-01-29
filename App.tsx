@@ -7,10 +7,10 @@ import { StarBackground } from './components/StarBackground';
 import { ChatInterface } from './components/ChatInterface';
 import { SavedGamesSection } from './components/SavedGamesSection';
 import AuthPage, { AuthUser } from './components/AuthPage';
-import { SimulationSettings } from './components/SimulationSettings';
+import { SettingsModal } from './components/SettingsModal';
 import { EthicsModal } from './components/EthicsModal';
 import { MultiLifeComparison } from './components/MultiLifeComparison';
-import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, MapPin, User, Scroll, LogOut } from 'lucide-react';
+import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, MapPin, User, Scroll, LogOut, Settings } from 'lucide-react';
 import { addRecentStart, getRecentStarts } from './services/simulationMemory';
 import { randomDateInYear } from './services/timeUtils';
 import { logDebug, logError, logWarn } from './services/logger';
@@ -56,6 +56,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [comparisonOpen, setComparisonOpen] = useState(false);
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [comparisonLives, setComparisonLives] = useState<{ region: WorldRegion; character: Character }[]>([]);
+  const [settingsModalMode, setSettingsModalMode] = useState<GameMode | null>(null);
 
   const [gameState, setGameState] = useState<GameState>({
     character: {} as Character,
@@ -681,27 +682,36 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                           </div>
                         )}
 
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); startGame(mode.mode); }}
-                          disabled={loading}
-                          className={`
-                            w-full py-3.5 rounded-lg text-sm font-bold tracking-[0.15em] shadow-lg transition-all transform active:scale-95
-                            ${mode.buttonBg} disabled:opacity-50 disabled:cursor-not-allowed font-heading
-                            relative overflow-hidden group
-                          `}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                          {loading ? (
-                            <span className="flex items-center justify-center gap-2">
-                               <div className="w-4 h-4 border-2 border-amber-200/30 border-t-amber-100 rounded-full animate-spin"></div>
-                               DIVINING...
-                            </span>
-                          ) : (
-                            <span className="flex items-center justify-center gap-2">
-                               INITIALIZE <Play size={12} fill="currentColor" />
-                            </span>
-                          )}
-                        </button>
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); startGame(mode.mode); }}
+                            disabled={loading}
+                            className={`
+                              flex-1 py-3.5 rounded-lg text-sm font-bold tracking-[0.15em] shadow-lg transition-all transform active:scale-95
+                              ${mode.buttonBg} disabled:opacity-50 disabled:cursor-not-allowed font-heading
+                              relative overflow-hidden group
+                            `}
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                            {loading ? (
+                              <span className="flex items-center justify-center gap-2">
+                                 <div className="w-4 h-4 border-2 border-amber-200/30 border-t-amber-100 rounded-full animate-spin"></div>
+                                 DIVINING...
+                              </span>
+                            ) : (
+                              <span className="flex items-center justify-center gap-2">
+                                 INITIALIZE <Play size={12} fill="currentColor" />
+                              </span>
+                            )}
+                          </button>
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); setSettingsModalMode(mode.mode); }}
+                            className="px-3.5 py-3.5 rounded-lg bg-stone-300/80 hover:bg-stone-400/80 border border-stone-400/50 text-stone-700 transition-colors shadow-lg"
+                            title="Simulation Settings"
+                          >
+                            <Settings size={18} />
+                          </button>
+                        </div>
                       </div>
 
                    </div>
@@ -711,41 +721,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
           </div>
         </div>
 
-        <div className="w-full px-4 mb-6 z-10">
-          <SimulationSettings
-            config={simulationConfig}
-            onChange={setSimulationConfig}
-          />
-          <div className="mt-4 max-w-3xl mx-auto bg-stone-900/60 backdrop-blur-sm border border-stone-700 rounded-xl p-4 md:p-6 text-left">
-            <div className="flex items-center justify-between gap-4 mb-3">
-              <h3 className="text-xs md:text-sm font-heading tracking-widest uppercase text-stone-300">Start Year (Optional)</h3>
-              <span className="text-[10px] text-stone-500 font-heading tracking-widest uppercase">Today: Jan 29, 2026</span>
-            </div>
-            <div className="flex flex-col md:flex-row md:items-center gap-3">
-              <input
-                type="number"
-                min={1000}
-                max={3000}
-                placeholder="e.g., 1994"
-                value={startYearInput}
-                onChange={(e) => setStartYearInput(e.target.value)}
-                className="w-full md:w-48 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-200 placeholder-stone-600 focus:border-amber-600 focus:outline-none font-serif"
-              />
-              <p className="text-xs text-stone-500 font-serif">
-                Leave blank to randomize birth year. If set, the character starts as a newborn in that year.
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 flex justify-center">
-            <button
-              onClick={handleCompareLives}
-              className="px-4 py-2 text-[11px] font-heading tracking-widest uppercase border border-amber-700/50 text-amber-200 bg-amber-900/30 hover:bg-amber-900/50 rounded-lg transition-colors"
-            >
-              Parallel Lives Lab
-            </button>
-          </div>
-        </div>
-
+        
         {/* Saved Games Section */}
         {savedGames.length > 0 && (
           <SavedGamesSection
@@ -782,6 +758,16 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
           isLoading={comparisonLoading}
           lives={comparisonLives}
           onClose={() => setComparisonOpen(false)}
+        />
+
+        <SettingsModal
+          isOpen={settingsModalMode !== null}
+          onClose={() => setSettingsModalMode(null)}
+          config={simulationConfig}
+          onChange={setSimulationConfig}
+          startYear={startYearInput}
+          onStartYearChange={setStartYearInput}
+          modeName={settingsModalMode ? modes.find(m => m.mode === settingsModalMode)?.title || 'Simulation' : 'Simulation'}
         />
       </div>
     );
