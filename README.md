@@ -1,300 +1,224 @@
 # Simili - AI Life Simulator
 
-An AI-powered hyper-realistic life simulator using React, TypeScript, and Vite, integrated with Google Gemini AI for generating characters, life events, and multimedia content.
+Simili is a hyper-realistic AI life simulation game that lets you live thousands of different lives and see how environment, luck, and choice shape a human story. It blends systems modeling with narrative generation to create believable, emotionally grounded experiences from birth to death.
 
-## Features
+Live demo: https://simili-ai.replit.app
 
-- **Three Game Modes**: Real Life (random), Custom Start, and Alternative (fantasy/supernatural)
-- **AI-Generated Characters**: Unique backstories, locations, and circumstances
-- **Dynamic Life Events**: Choices that shape your character's destiny
-- **Multimedia Generation**: AI-generated images, videos, and audio narration
-- **Persistent Saves**: PostgreSQL-backed save system with session authentication
-- **Oracle Chat**: AI assistant for guidance and questions about your journey
+---
+
+## Why Simili Exists
+
+Simili is designed for:
+- Players who want a deep, narrative life sim with meaningful choices
+- Researchers and educators exploring systemic outcomes and bias
+- Anyone curious how small decisions compound over time
+
+It is not a prediction engine. It is a synthetic simulation that aims to be honest about context and consequence.
+
+---
+
+## Highlights
+
+### Core Experience
+- **Three modes**: Real Life (randomized), Custom Start, Alternative (fantasy/scifi/superhero/horror).
+- **Life stages**: Infancy -> Childhood -> Adolescence -> Young Adult -> Midlife -> Elderhood.
+- **Time control**: Advance by Day, Week, Month, or Year with consistent date logic.
+- **Realistic stats**: Health, mental, energy, wealth, intelligence, social.
+- **Hidden mechanics**: Long-term consequences track beneath the surface.
+- **Narrative arcs**: Mentors, illness, migration, love, injustice, calling, and more.
+- **Multimedia**: Optional AI-generated images, video, and narration.
+- **Oracle chat**: In-game AI assistant for guidance and mechanics.
+- **Persistent saves**: Authenticated save/load system.
+
+### Coherence and Trust
+- **Plausible life logic**: Education, career, and relationships evolve by age and stage.
+- **Causal threads**: "Why this happened" overlay explains systemic causes.
+- **Moral friction**: Harmful choices carry realistic consequences.
+- **Global diversity control**: Birth-region weighting and repetition avoidance.
+
+### Depth and Meaning
+- **Opportunity systems**: Healthcare access, school quality, safety, labor market, social capital, discrimination, migration policy, housing stability.
+- **Legacy**: Community reputation, cultural impact, generational wealth.
+- **Purpose drives**: Belonging, mastery, autonomy, meaning.
+- **Milestone reveals**: Key life moments are highlighted.
+
+### Wonder and Research Value
+- **Macro world events**: Climate, conflict, tech, economy, health.
+- **Parallel Lives Lab**: Compare identical traits across regions.
+- **Research Mode**: Neutral analysis of systemic vs agency factors (opt-in only).
+- **Ethics Dashboard**: Transparency on assumptions and synthetic nature.
+
+---
+
+## Game Modes
+
+### Real Life (Random)
+Start with no control. Your birthplace, family status, and early conditions are weighted by global distributions.
+
+### Custom Start
+Choose your name and birthplace. All other traits are still generated realistically from the context.
+
+### Alternative
+Optional genre selection (or random):
+- **Fantasy**: Arcane traits, mana, ritual consequences.
+- **Sci-Fi**: Tech augmentation, anomaly exposure.
+- **Superhero**: Power tiers, fame, moral stakes.
+- **Horror**: Dread, omens, survival pressure.
+
+Alternative mode keeps grounded consequences while layering genre systems.
+
+---
+
+## Setup Options (Before Starting)
+
+- **Research Mode (opt-in)**: When enabled in setup, a Research toggle appears in-game. It adds analysis summaries for each event.
+- **Birth distribution**: Global, balanced, or custom region weights.
+- **Realism intensity**: Gentle, true, or harsh.
+- **Start year (optional)**: Choose a year for birth or leave blank for random.
+- **Alternative sub-genre (optional)**: Pick or randomize for Alternative mode.
+
+---
+
+## How to Run Locally
+
+### Prerequisites
+- Node.js 18+
+- PostgreSQL
+- Google Gemini API key
+
+### Install
+```bash
+npm install
+```
+
+### Environment
+Create `.env.local`:
+```env
+GEMINI_API_KEY=your_key_here
+DATABASE_URL=postgresql://user:password@localhost:5432/simili
+PORT=3000
+VITE_PORT=5000
+```
+
+### Database
+```bash
+npm run db:push
+```
+
+### Dev Server
+```bash
+npm run dev
+```
+Open `http://localhost:5000`
+
+---
 
 ## Tech Stack
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Backend**: Express.js API server
-- **Database**: PostgreSQL with Drizzle ORM
-- **AI**: Google Gemini API (text, images, video, audio)
-- **Styling**: Tailwind CSS + GSAP animations
-- **Authentication**: Session-based with httpOnly cookies
+**Frontend**
+- React 19 + TypeScript
+- Vite 6
+- Tailwind CSS + custom styles
+- GSAP (landing animations)
+
+**Backend**
+- Express 5
+- PostgreSQL + Drizzle ORM
+- Session auth (httpOnly cookies)
+
+**AI**
+- Google Gemini (text, image, video, audio)
 
 ---
 
-## Local Development
+## Key Systems (Under the Hood)
 
-### Prerequisites
+### Simulation Core
+- Date math for Day/Week/Month/Year steps
+- Age normalization based on birthday
+- Coherence checks for education/career/relationships
 
-- Node.js 18+ 
-- PostgreSQL database (local or cloud)
-- Google Gemini API key
+### Causality and Research
+- Systemic factors (healthcare, school, safety, discrimination, etc.)
+- Counterfactuals (what could have changed the outcome)
+- Optional research summaries with agency notes
 
-### Setup
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd simili
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   # Required
-   GEMINI_API_KEY=your_gemini_api_key_here
-   DATABASE_URL=postgresql://user:password@localhost:5432/simili
-   
-   # Optional (defaults shown)
-   PORT=3000
-   VITE_PORT=5000
-   ```
-
-4. **Set up the database**
-   ```bash
-   npm run db:push
-   ```
-
-5. **Run the development server**
-   ```bash
-   npm run dev
-   ```
-   
-   This starts both the backend (port 3000) and frontend (port 5000).
-
-6. **Open in browser**
-   
-   Navigate to `http://localhost:5000`
+### Diversity and Distribution
+- Region-weighted births
+- Avoids repeating countries across recent starts
+- Parallel lives compare same traits across different regions
 
 ---
 
-## Project Structure
+## Project Structure (Top Level)
 
 ```
-simili/
-├── components/           # React components
-│   ├── LandingPage.tsx   # Animated landing page with GSAP
-│   ├── AuthPage.tsx      # Login/signup forms
-│   ├── Dashboard.tsx     # Main game interface
-│   ├── ChatInterface.tsx # Oracle AI chat
-│   └── SavedGamesSection.tsx
-├── services/             # Frontend services
-│   ├── geminiLoader.ts   # AI integration
-│   ├── saveGameService.ts # Save/load API calls
-│   └── logger.ts         # Debug logging
-├── server/               # Backend
-│   ├── index.ts          # Express API endpoints
-│   ├── db.ts             # Database connection
-│   └── storage.ts        # Data access layer
-├── shared/               # Shared code
-│   └── schema.ts         # Drizzle database schema
-├── types.ts              # TypeScript types
-├── App.tsx               # Main app component
-├── AppWrapper.tsx        # Routing wrapper
-└── main.tsx              # Entry point
+components/
+  AuthPage.tsx
+  Dashboard.tsx
+  EthicsModal.tsx
+  MultiLifeComparison.tsx
+  SimulationSettings.tsx
+  ...
+services/
+  geminiService.ts
+  altMechanics.ts
+  driveEngine.ts
+  lifeModel.ts
+  macroWorld.ts
+  researchAnalysis.ts
+  ...
+server/
+  index.ts
+  db.ts
+  storage.ts
+shared/
+  schema.ts
+types.ts
+App.tsx
 ```
 
 ---
 
-## Contributing
-
-### Getting Started
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature-name`
-3. Make your changes
-4. Test locally (see below)
-5. Submit a pull request
-
-### Code Style
-
-- Use TypeScript for all new code
-- Follow existing patterns and conventions
-- Keep components focused and modular
-- Use meaningful variable and function names
-- Avoid adding comments unless explaining complex logic
-
-### Testing Your Changes
-
-Before submitting a PR:
-
-1. **Run the dev server** and verify no console errors
-2. **Test the user flow**:
-   - Landing page animations work
-   - Login/signup functions correctly
-   - Game modes initialize properly
-   - Saves persist and load correctly
-   - Navigation (LIFESIM title click) works
-3. **Check mobile responsiveness**
-4. **Verify database changes** with `npm run db:push`
-
-### Database Changes
-
-If you modify `shared/schema.ts`:
-
-1. **Never change existing ID column types** - this breaks migrations
-2. Run `npm run db:push` to sync schema
-3. If conflicts occur, use `npm run db:push --force` (development only)
-4. Test that existing saves still load properly
-
----
-
-## Replit Environment Notes
-
-This project is designed to run on Replit. If you're developing locally but the app runs on Replit in production:
-
-### Important Considerations
-
-1. **Port Configuration**
-   - Frontend MUST bind to `0.0.0.0:5000` for Replit's proxy
-   - Backend runs on port 3000 (internal)
-   - Vite config allows all hosts for iframe embedding
-
-2. **Environment Variables**
-   - On Replit: Use Secrets tab for `GEMINI_API_KEY`
-   - `DATABASE_URL` is auto-provisioned on Replit
-   - Never commit secrets to the repository
-
-3. **Database**
-   - Replit uses Neon PostgreSQL
-   - Local dev can use any PostgreSQL instance
-   - Schema is managed via Drizzle ORM
-
-4. **No Docker/Containers**
-   - Replit uses Nix, not Docker
-   - Don't add Dockerfiles or containerization
-   - Dependencies managed via `package.json` and Nix
-
-5. **File Structure**
-   - Keep `replit.md` updated with architecture changes
-   - Don't modify `.replit` or `replit.nix` unless necessary
-
-### What NOT to Change
-
-- Vite host/port configuration in `vite.config.ts`
-- Session cookie settings in `server/index.ts`
-- Database connection handling in `server/db.ts`
-- The `npm run dev` script structure
-
----
-
-## Environment Variables
-
-### Required Variables
-
-| Variable | Description | Where to Set |
-|----------|-------------|--------------|
-| `GEMINI_API_KEY` | Google Gemini API key for AI features | Secrets (Replit) or `.env.local` (local) |
-| `DATABASE_URL` | PostgreSQL connection string | Auto-provisioned on Replit, manual for local |
-
-### Optional Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `5000` | Server port (production) |
-| `NODE_ENV` | `development` | Environment mode |
-
-### Local Development Setup
-
-Create a `.env.local` file (never commit this):
-
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-DATABASE_URL=postgresql://username:password@localhost:5432/simili
-```
-
-### Getting a Gemini API Key
-
-1. Go to [Google AI Studio](https://aistudio.google.com/)
-2. Sign in with your Google account
-3. Click "Get API Key" 
-4. Create a new API key or use an existing one
-5. Copy the key and add it to your environment
-
----
-
-## Deployment
-
-### Production URL
-
-**Live Site**: https://simili-ai.replit.app
-
-### Deployment Process (Replit)
-
-1. **Build command**: `npm run build`
-   - Compiles React/TypeScript to optimized static files in `dist/`
-
-2. **Run command**: `npm run start`
-   - Starts Express server on port 5000
-   - Serves built frontend and API endpoints
-
-3. **Deployment type**: Autoscale
-   - Scales from zero based on traffic
-   - Cost-effective for variable load
-
-### Manual Deployment Steps
-
-1. Ensure all environment variables are set in Replit Secrets
-2. Test locally with `npm run dev`
-3. Build with `npm run build` to verify no errors
-4. Click "Deploy" in Replit
-
-### Production Checklist
-
-Before deploying, verify:
-
-- [ ] `GEMINI_API_KEY` is set in Replit Secrets
-- [ ] Database schema is up to date (`npm run db:push`)
-- [ ] Build completes without errors
-- [ ] No console errors in development
-- [ ] Authentication flow works
-- [ ] Game saves persist correctly
-
----
-
-## Available Scripts
+## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start both backend and frontend servers (development) |
-| `npm run build` | Build frontend for production |
-| `npm run start` | Start production server (serves built frontend + API) |
-| `npm run db:push` | Push schema changes to database |
-| `npm run db:studio` | Open Drizzle Studio for database inspection |
+| `npm run dev` | Start API + Vite dev server |
+| `npm run build` | Build frontend |
+| `npm run start` | Run production server |
+| `npm run db:push` | Sync schema to DB |
+| `npm run db:studio` | Drizzle Studio |
 
 ---
 
-## API Endpoints
+## Developer Tips
 
-### Authentication
-- `POST /api/auth/signup` - Create account
-- `POST /api/auth/login` - Login
-- `POST /api/auth/logout` - Logout
-- `GET /api/auth/me` - Get current user
-
-### Game Saves (authenticated)
-- `GET /api/saves` - List user's saves
-- `GET /api/save/:id` - Get specific save
-- `POST /api/saves` - Create new save
-- `PUT /api/saves/:id` - Update save
-- `DELETE /api/saves/:id` - Delete save
+- Enable debug logs in the browser console by setting `localStorage.SIMILI_DEBUG = "1"`.
+- If your build fails on `gsap`, run `npm install` to ensure dependencies are installed.
 
 ---
 
-## License
+## Notes on Research Mode
 
-[Add your license here]
+- Research is **opt-in at setup**.
+- If you do not opt in, the Research toggle is hidden in-game.
+- Opt-in adds neutral summaries and systemic vs agency analysis.
+
+---
+
+## Production
+
+Live demo: https://simili-ai.replit.app
+
+Replit details:
+- Frontend: port 5000
+- Backend: port 3000 (internal)
+- GEMINI_API_KEY via Secrets
+- DATABASE_URL auto-provisioned
 
 ---
 
 ## Support
 
-For questions or issues:
-- Open a GitHub issue
-- Check existing issues for solutions
+Questions or issues: open a GitHub issue or contact the maintainer.
