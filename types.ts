@@ -21,6 +21,7 @@ export interface SimulationConfig {
   realismIntensity: RealismIntensity;
   researchMode: boolean;
   showCausality: boolean;
+  researchOptIn: boolean;
 }
 
 export interface CharacterAttributes {

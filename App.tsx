@@ -49,7 +49,8 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     birthConfig: getDefaultBirthConfig(),
     realismIntensity: 'true',
     researchMode: false,
-    showCausality: false
+    showCausality: false,
+    researchOptIn: false
   });
 
   const [comparisonOpen, setComparisonOpen] = useState(false);
@@ -69,7 +70,8 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       birthConfig: getDefaultBirthConfig(),
       realismIntensity: 'true',
       researchMode: false,
-      showCausality: false
+      showCausality: false,
+      researchOptIn: false
     },
     storyArcs: []
   });
@@ -388,8 +390,12 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   };
 
   const handleConfigChange = (nextConfig: SimulationConfig) => {
-    setGameState(prev => ({ ...prev, config: nextConfig }));
-    setSimulationConfig(nextConfig);
+    const normalized = {
+      ...nextConfig,
+      researchOptIn: nextConfig.researchOptIn || false
+    };
+    setGameState(prev => ({ ...prev, config: normalized }));
+    setSimulationConfig(normalized);
   };
 
   const handleLoadGame = async (saveId: number) => {
@@ -398,7 +404,13 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     try {
       const loadedState = await loadGame(saveId);
       if (loadedState) {
-        const normalizedConfig = loadedState.config || simulationConfig;
+        const normalizedConfig: SimulationConfig = {
+          birthConfig: loadedState.config?.birthConfig || simulationConfig.birthConfig,
+          realismIntensity: loadedState.config?.realismIntensity || simulationConfig.realismIntensity,
+          researchMode: loadedState.config?.researchMode || false,
+          showCausality: loadedState.config?.showCausality || false,
+          researchOptIn: loadedState.config?.researchOptIn ?? loadedState.config?.researchMode ?? false
+        };
         setGameState({
           ...loadedState,
           config: normalizedConfig,

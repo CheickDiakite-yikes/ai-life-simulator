@@ -284,7 +284,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onConfigChange({
       ...config,
       researchMode: !config.researchMode,
-      showCausality: !config.researchMode ? true : config.showCausality
+      showCausality: !config.researchMode ? true : config.showCausality,
+      researchOptIn: config.researchOptIn
     });
   };
 
@@ -438,17 +439,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
             ))}
           </div>
           <div className="w-px h-6 bg-stone-700 mx-0.5 sm:mx-1 md:mx-2"></div>
-          <button
-            onClick={handleResearchToggle}
-            className={`px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] md:text-xs font-bold font-heading tracking-wide sm:tracking-wider rounded-sm transition-colors border ${
-              config.researchMode
-                ? 'bg-emerald-800 text-emerald-100 border-emerald-700'
-                : 'bg-stone-800 text-stone-400 border-stone-700 hover:text-stone-200'
-            }`}
-            title="Toggle Research Mode"
-          >
-            RESEARCH
-          </button>
+          {config.researchOptIn && (
+            <button
+              onClick={handleResearchToggle}
+              className={`px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] md:text-xs font-bold font-heading tracking-wide sm:tracking-wider rounded-sm transition-colors border ${
+                config.researchMode
+                  ? 'bg-emerald-800 text-emerald-100 border-emerald-700'
+                  : 'bg-stone-800 text-stone-400 border-stone-700 hover:text-stone-200'
+              }`}
+              title="Toggle Research Mode"
+            >
+              RESEARCH
+            </button>
+          )}
           <button
             onClick={onOpenEthics}
             className="px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] md:text-xs font-bold font-heading tracking-wide sm:tracking-wider rounded-sm transition-colors border bg-stone-800 text-stone-400 border-stone-700 hover:text-amber-200"

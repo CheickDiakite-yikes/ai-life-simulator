@@ -28,7 +28,8 @@ const FALLBACK_CONFIG: SimulationConfig = {
   birthConfig: getDefaultBirthConfig(),
   realismIntensity: 'true',
   researchMode: false,
-  showCausality: false
+  showCausality: false,
+  researchOptIn: false
 };
 
 // --- Audio Helper: Raw PCM to WAV ---

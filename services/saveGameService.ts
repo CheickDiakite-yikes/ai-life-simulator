@@ -146,11 +146,12 @@ export const loadGame = async (saveId: number): Promise<GameState | null> => {
       isLoading: false,
       mode: save.mode as GameMode,
       theme: save.theme || 'modern',
-      config: save.config || {
-        birthConfig: getDefaultBirthConfig(),
-        realismIntensity: 'true',
-        researchMode: false,
-        showCausality: false
+      config: {
+        birthConfig: save.config?.birthConfig || getDefaultBirthConfig(),
+        realismIntensity: save.config?.realismIntensity || 'true',
+        researchMode: save.config?.researchMode || false,
+        showCausality: save.config?.showCausality || false,
+        researchOptIn: save.config?.researchOptIn ?? save.config?.researchMode ?? false
       },
       storyArcs: (save.storyArcs as any[]) || []
     };

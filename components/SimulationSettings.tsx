@@ -46,6 +46,7 @@ export const SimulationSettings: React.FC<SimulationSettingsProps> = ({ config, 
     onChange({
       ...config,
       researchMode: nextResearch,
+      researchOptIn: nextResearch,
       showCausality: nextResearch ? true : config.showCausality
     });
   };
