@@ -1,4 +1,4 @@
-import { CharacterAttributes, TimeStep } from '../types';
+import { CharacterAttributes, RealismIntensity, TimeStep } from '../types';
 import { logDebug } from './logger';
 
 const STAT_KEYS: Array<keyof CharacterAttributes> = [
@@ -75,6 +75,13 @@ const keywordRules = [
   { regex: /(smoke|drink|drug|overdose)/i, delta: { health: -2, happiness: 1, energy: -1 } }
 ];
 
+const harmfulRules = [
+  { regex: /(steal|rob|crime|fraud|scam)/i, moralDebt: 4, legalRisk: 3, social: -2 },
+  { regex: /(hit|assault|violence|harm|weapon)/i, moralDebt: 5, legalRisk: 4, health: -2, social: -2 },
+  { regex: /(cheat|lie|betray|exploit)/i, moralDebt: 3, social: -1 },
+  { regex: /(drug|overdose|hard substance)/i, moralDebt: 4, health: -3, energy: -2 }
+];
+
 const applyDelta = (
   attrs: CharacterAttributes,
   delta: Partial<CharacterAttributes>,
@@ -113,21 +120,23 @@ export const applyStatAdjustments = (params: {
   eventType?: string;
   timeStep: TimeStep;
   description?: string;
+  realismIntensity?: RealismIntensity;
 }): CharacterAttributes => {
-  const { attributes, previousAttributes, choiceText, eventType, timeStep, description } = params;
+  const { attributes, previousAttributes, choiceText, eventType, timeStep, description, realismIntensity = 'true' } = params;
   const multiplier = timeMultiplier(timeStep);
+  const intensityMultiplier = realismIntensity === 'gentle' ? 0.8 : realismIntensity === 'harsh' ? 1.2 : 1;
   const modelDeltaMagnitude = computeStatDeltaMagnitude(previousAttributes, attributes);
   const dampener = modelDeltaMagnitude >= 12 ? 0.35 : modelDeltaMagnitude >= 6 ? 0.6 : 1;
 
   let next = { ...attributes };
   const baseDelta = eventBaseline(eventType);
-  next = applyDelta(next, baseDelta, multiplier * dampener);
+  next = applyDelta(next, baseDelta, multiplier * dampener * intensityMultiplier);
 
   const context = `${choiceText || ''} ${description || ''}`.trim();
   if (context) {
     keywordRules.forEach((rule) => {
       if (rule.regex.test(context)) {
-        next = applyDelta(next, rule.delta, multiplier * dampener);
+        next = applyDelta(next, rule.delta, multiplier * dampener * intensityMultiplier);
       }
     });
   }
@@ -156,4 +165,32 @@ export const applyStatAdjustments = (params: {
   }
 
   return next;
+};
+
+export const applyMoralFriction = (params: {
+  hiddenMetrics: Record<string, number>;
+  choiceText?: string | null;
+  realismIntensity?: RealismIntensity;
+  attributes: CharacterAttributes;
+}): { hiddenMetrics: Record<string, number>; attributes: CharacterAttributes } => {
+  const { hiddenMetrics, choiceText, realismIntensity = 'true', attributes } = params;
+  if (!choiceText) return { hiddenMetrics, attributes };
+
+  const intensityMultiplier = realismIntensity === 'gentle' ? 0.6 : realismIntensity === 'harsh' ? 1.3 : 1;
+  const nextHidden = { ...hiddenMetrics };
+  let nextAttributes = { ...attributes };
+
+  harmfulRules.forEach((rule) => {
+    if (rule.regex.test(choiceText)) {
+      const moralDebt = (nextHidden.moral_debt || 0) + rule.moralDebt * intensityMultiplier;
+      const legalRisk = (nextHidden.legal_risk || 0) + (rule.legalRisk || 0) * intensityMultiplier;
+      nextHidden.moral_debt = Math.min(100, Math.max(0, moralDebt));
+      nextHidden.legal_risk = Math.min(100, Math.max(0, legalRisk));
+
+      if (rule.health) nextAttributes.health = clampStat(nextAttributes.health + rule.health * intensityMultiplier);
+      if (rule.social) nextAttributes.social = clampStat(nextAttributes.social + rule.social * intensityMultiplier);
+    }
+  });
+
+  return { hiddenMetrics: nextHidden, attributes: nextAttributes };
 };

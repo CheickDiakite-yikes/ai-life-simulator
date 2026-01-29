@@ -1,4 +1,4 @@
-import type { Character, GameMode, LifeEvent, TimeStep } from '../types';
+import type { Character, GameMode, LifeEvent, SimulationConfig, TimeStep, WorldRegion } from '../types';
 import type { RecentStart } from './simulationMemory';
 
 let servicePromise: Promise<typeof import('./geminiService')> | null = null;
@@ -13,7 +13,7 @@ const loadService = () => {
 export const generateInitialCharacter = async (
   mode: GameMode,
   userInputs?: any,
-  options?: { recentStarts?: RecentStart[] }
+  options?: { recentStarts?: RecentStart[]; config?: SimulationConfig; regionHint?: WorldRegion; seed?: string; fixedTraits?: Partial<Character>; altGenre?: import('../types').AltGenre }
 ): Promise<Character> => {
   const service = await loadService();
   return service.generateInitialCharacter(mode, userInputs, options);
@@ -25,7 +25,9 @@ export const advanceLife = async (
   choiceMade: string | null,
   currentDate: string,
   timeStep: TimeStep,
-  realWorldContext: string = ''
+  config: SimulationConfig,
+  realWorldContext: string = '',
+  options?: { mode?: GameMode; altGenre?: import('../types').AltGenre }
 ): Promise<{ character: Character; event: LifeEvent }> => {
   const service = await loadService();
   return service.advanceLife(
@@ -34,7 +36,9 @@ export const advanceLife = async (
     choiceMade,
     currentDate,
     timeStep,
-    realWorldContext
+    config,
+    realWorldContext,
+    options
   );
 };
 

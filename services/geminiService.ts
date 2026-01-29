@@ -1,10 +1,19 @@
 import { GoogleGenAI, Type, Schema, Modality } from "@google/genai";
-import { Character, GameMode, LifeEvent, NewsItem, TimeStep } from "../types";
+import { AltGenre, Character, GameMode, LifeEvent, MacroEvent, NewsItem, SimulationConfig, TimeStep, WorldRegion } from "../types";
 import { getRuntimeApiKey } from "./apiKey";
 import { logDebug, logError, logWarn, safeStringify } from "./logger";
 import { RecentStart, buildAvoidCountries, extractCountry, matchesAvoidedCountry, summarizeRecentStarts } from "./simulationMemory";
 import { addTimeStep, calculateAge, isAfterOrEqual, isValidISODate } from "./timeUtils";
-import { applyStatAdjustments, normalizeAttributes } from "./statEngine";
+import { applyMoralFriction, applyStatAdjustments, normalizeAttributes } from "./statEngine";
+import { normalizeCareer, normalizeEducation, normalizeRelationship, normalizeSystems, getLifeStage } from "./lifeModel";
+import { deriveCausalFactors, deriveCounterfactuals } from "./causality";
+import { getMacroEvents } from "./macroWorld";
+import { formatBirthWeights, getDefaultBirthConfig, pickWeightedRegion } from "./birthConfig";
+import { updateLegacy } from "./legacyEngine";
+import { applyDriveAdjustments, normalizeDrives } from "./driveEngine";
+import { buildResearchAnalysis, detectMilestones } from "./researchAnalysis";
+import { inferRegionFromLocation } from "./regionUtils";
+import { applyAlternativeMechanics, ensureAlternativeProfile } from "./altMechanics";
 
 // Helper to get client with current key
 const getClient = () => {
@@ -13,6 +22,13 @@ const getClient = () => {
     logError("API Key not found in environment or local storage");
   }
   return new GoogleGenAI({ apiKey: apiKey || '' });
+};
+
+const FALLBACK_CONFIG: SimulationConfig = {
+  birthConfig: getDefaultBirthConfig(),
+  realismIntensity: 'true',
+  researchMode: false,
+  showCausality: false
 };
 
 // --- Audio Helper: Raw PCM to WAV ---
@@ -76,13 +92,25 @@ const base64ToUint8Array = (base64: string): Uint8Array => {
 export const generateInitialCharacter = async (
   mode: GameMode,
   userInputs?: any,
-  options?: { recentStarts?: RecentStart[] }
+  options?: {
+    recentStarts?: RecentStart[];
+    config?: SimulationConfig;
+    regionHint?: WorldRegion;
+    seed?: string;
+    fixedTraits?: Partial<Character>;
+    altGenre?: AltGenre;
+  }
 ): Promise<Character> => {
   const ai = getClient();
   const recentStarts = options?.recentStarts || [];
+  const config = options?.config || FALLBACK_CONFIG;
+  const regionHint = options?.regionHint;
+  const seed = options?.seed;
+  const fixedTraits = options?.fixedTraits;
+  const altGenre = options?.altGenre;
   const avoidCountries = buildAvoidCountries(recentStarts);
   const recentSummary = summarizeRecentStarts(recentStarts);
-  const hasUserLocation = !!userInputs?.location;
+  const hasUserLocation = !!userInputs?.location || !!fixedTraits?.location;
   const maxAttempts = hasUserLocation ? 1 : 5;
   const normalizeLocation = (location: string) => location.toLowerCase().replace(/\s+/g, ' ').trim();
   const recentLocations = new Set(
@@ -90,6 +118,10 @@ export const generateInitialCharacter = async (
       .map((start) => normalizeLocation(start.location || ''))
       .filter((location): location is string => !!location)
   );
+  const recentRegions = recentStarts
+    .map((start) => inferRegionFromLocation(start.location || ''))
+    .filter((region): region is WorldRegion => !!region);
+  const baseAvoidRegions = Array.from(new Set(recentRegions));
 
   const schema: Schema = {
     type: Type.OBJECT,
@@ -127,6 +159,62 @@ export const generateInitialCharacter = async (
         } 
       },
       statusEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
+      lifeStage: { type: Type.STRING },
+      education: {
+        type: Type.OBJECT,
+        properties: {
+          level: { type: Type.STRING },
+          enrolled: { type: Type.BOOLEAN },
+          institutionQuality: { type: Type.NUMBER }
+        }
+      },
+      career: {
+        type: Type.OBJECT,
+        properties: {
+          status: { type: Type.STRING },
+          sector: { type: Type.STRING },
+          stability: { type: Type.NUMBER }
+        }
+      },
+      relationshipStatus: {
+        type: Type.OBJECT,
+        properties: {
+          status: { type: Type.STRING },
+          dependents: { type: Type.NUMBER },
+          caregiverLoad: { type: Type.NUMBER }
+        }
+      },
+      systems: {
+        type: Type.OBJECT,
+        properties: {
+          healthcareAccess: { type: Type.NUMBER },
+          schoolQuality: { type: Type.NUMBER },
+          laborMarket: { type: Type.NUMBER },
+          safety: { type: Type.NUMBER },
+          discrimination: { type: Type.NUMBER },
+          socialCapital: { type: Type.NUMBER },
+          migrationPolicy: { type: Type.NUMBER },
+          housingStability: { type: Type.NUMBER }
+        }
+      },
+      legacy: {
+        type: Type.OBJECT,
+        properties: {
+          children: { type: Type.NUMBER },
+          communityReputation: { type: Type.NUMBER },
+          culturalImpact: { type: Type.NUMBER },
+          generationalWealth: { type: Type.NUMBER }
+        }
+      },
+      drives: {
+        type: Type.OBJECT,
+        properties: {
+          belonging: { type: Type.NUMBER },
+          mastery: { type: Type.NUMBER },
+          autonomy: { type: Type.NUMBER },
+          meaning: { type: Type.NUMBER }
+        }
+      },
       hiddenMetrics: { 
         type: Type.ARRAY,
         items: {
@@ -138,7 +226,8 @@ export const generateInitialCharacter = async (
         },
         description: "List of invisible stats. E.g. [{name: 'pollution_exposure', value: 10}]",
         nullable: true
-      }
+      },
+      altGenre: { type: Type.STRING }
     }
   };
 
@@ -149,13 +238,30 @@ export const generateInitialCharacter = async (
     const diversityGuard = hasUserLocation
       ? 'User provided location; do not override.'
       : `Avoid repeating recent starts. Recent starts to avoid: ${recentSummary}. Avoid these countries if possible: ${avoidCountries.join(', ') || 'None'}. If a country is in the avoid list, you MUST choose a different country. Prefer underrepresented regions if you keep landing in the same area.`;
+    const birthWeights = config ? formatBirthWeights(config.birthConfig.weights) : 'Default global weighting';
+    const realism = config?.realismIntensity || 'true';
+    const attemptAvoidRegions = new Set(baseAvoidRegions);
+    if (lastCharacter?.location) {
+      const lastRegion = inferRegionFromLocation(lastCharacter.location);
+      if (lastRegion) attemptAvoidRegions.add(lastRegion);
+    }
+    const selectedRegion = !hasUserLocation
+      ? (regionHint || pickWeightedRegion(config.birthConfig.weights, { avoidRegions: Array.from(attemptAvoidRegions) }))
+      : undefined;
+    const regionDirective = selectedRegion ? `Birth region must be ${selectedRegion}.` : '';
+    const seedNote = seed ? `User seed: ${seed}.` : '';
+    const fixedTraitNote = fixedTraits ? JSON.stringify(fixedTraits) : 'None';
+
+    const altDirective = mode === GameMode.ALTERNATIVE
+      ? `ALTERNATIVE MODE: Use ${altGenre || 'a randomized'} genre (fantasy, scifi, superhero, or horror). Introduce grounded supernatural or advanced tech mechanics consistent with the genre. Ensure statusEffects include the core trait (e.g., Arcane Affinity, Tech-Augmented, Latent Power, Haunted).`
+      : '';
 
     const systemInstruction = `You are the engine for 'Simili', an AI-powered hyper-realistic life simulator.
     GOAL: Create a realistic, intersectional starting point for a human life.
     
     RULES:
     1. Realism is paramount. Do not sugarcoat poverty, systemic bias, or health disparities.
-    2. If 'Real Life' mode: Randomize location (weighted by real world population density), ethnicity, and class.
+    2. If 'Real Life' mode: Randomize location (weighted by configured birth distribution), ethnicity, and class.
     3. WEALTH LOGIC: 
        - A newborn/child has $0 'personalWealth'. 
        - 'familyWealth' represents the parents' socioeconomic status. 
@@ -163,9 +269,14 @@ export const generateInitialCharacter = async (
     5. HIDDEN METRICS: Initialize hidden tracking metrics relevant to the birth environment (e.g., 'pollution_exposure', 'malnutrition_risk').
     6. DIVERSITY GUARD: ${diversityGuard}
     7. VARIATION: Avoid using the same names, locations, or biographical tropes from recent sessions.
+    8. REALISM INTENSITY: ${realism}.
+    9. BIRTH DISTRIBUTION: ${birthWeights}.
+    10. REGION OVERRIDE: ${regionDirective || 'None'}.
+    11. FIXED TRAITS: ${fixedTraitNote}. If provided, keep these traits unchanged unless impossible.
+    12. ${altDirective}
     
     Mode: ${mode}.
-    Session seed: ${diversitySeed}-${attempt}.
+    Session seed: ${diversitySeed}-${attempt}. ${seedNote}
     ${userInputs ? `User preferences: ${JSON.stringify(userInputs)}` : 'Start: Completely random.'}
     
     Return JSON only.`;
@@ -175,6 +286,12 @@ export const generateInitialCharacter = async (
       attempt,
       hasUserInputs: !!userInputs,
       avoidCountries,
+      birthWeights: birthWeights,
+      regionHint,
+      selectedRegion,
+      avoidRegions: Array.from(attemptAvoidRegions),
+      realism,
+      hasFixedTraits: !!fixedTraits
     });
 
     let response;
@@ -217,6 +334,21 @@ export const generateInitialCharacter = async (
       continue;
     }
 
+    if (fixedTraits) {
+      rawChar = {
+        ...rawChar,
+        ...fixedTraits,
+        attributes: fixedTraits.attributes ? { ...rawChar.attributes, ...fixedTraits.attributes } : rawChar.attributes,
+        systems: fixedTraits.systems ? { ...rawChar.systems, ...fixedTraits.systems } : rawChar.systems,
+        education: fixedTraits.education ? { ...rawChar.education, ...fixedTraits.education } : rawChar.education,
+        career: fixedTraits.career ? { ...rawChar.career, ...fixedTraits.career } : rawChar.career,
+        relationshipStatus: fixedTraits.relationshipStatus ? { ...rawChar.relationshipStatus, ...fixedTraits.relationshipStatus } : rawChar.relationshipStatus,
+        legacy: fixedTraits.legacy ? { ...rawChar.legacy, ...fixedTraits.legacy } : rawChar.legacy,
+        drives: fixedTraits.drives ? { ...rawChar.drives, ...fixedTraits.drives } : rawChar.drives,
+        hiddenMetrics: fixedTraits.hiddenMetrics ? { ...rawChar.hiddenMetrics, ...fixedTraits.hiddenMetrics } : rawChar.hiddenMetrics
+      };
+    }
+
     // Convert array of metrics back to Record for application use
     const metrics: Record<string, number> = {};
     if (rawChar.hiddenMetrics && Array.isArray(rawChar.hiddenMetrics)) {
@@ -227,6 +359,19 @@ export const generateInitialCharacter = async (
       });
     }
     rawChar.hiddenMetrics = metrics;
+    rawChar.lifeStage = getLifeStage(rawChar.age || 0);
+    rawChar.systems = normalizeSystems(rawChar.systems);
+    rawChar.education = normalizeEducation(rawChar.education, rawChar.age);
+    rawChar.career = normalizeCareer(rawChar.career, rawChar.age);
+    rawChar.relationshipStatus = normalizeRelationship(rawChar.relationshipStatus, rawChar.age);
+    rawChar.legacy = rawChar.legacy || { children: 0, communityReputation: 40, culturalImpact: 10, generationalWealth: 5 };
+    if (rawChar.age !== undefined && rawChar.age < 5 && rawChar.attributes) {
+      rawChar.attributes.personalWealth = 0;
+    }
+    rawChar.drives = normalizeDrives(rawChar.drives, rawChar as Character);
+    if (mode === GameMode.ALTERNATIVE) {
+      rawChar = ensureAlternativeProfile(rawChar as Character, altGenre);
+    }
 
     const location = typeof rawChar.location === 'string' ? rawChar.location : '';
     const country = extractCountry(location);
@@ -257,10 +402,22 @@ export const advanceLife = async (
   choiceMade: string | null,
   currentDate: string,
   timeStep: TimeStep,
-  realWorldContext: string = ""
+  config: SimulationConfig = FALLBACK_CONFIG,
+  realWorldContext: string = "",
+  options?: { mode?: GameMode; altGenre?: AltGenre }
 ): Promise<{ character: Character; event: LifeEvent }> => {
   const ai = getClient();
   const expectedNextDate = addTimeStep(currentDate, timeStep);
+  const realismIntensity = config?.realismIntensity || 'true';
+  const region = inferRegionFromLocation(character.location || '');
+  const altGenre = options?.altGenre || character.altGenre;
+  const isAlternative = options?.mode === GameMode.ALTERNATIVE || !!altGenre;
+  const macroEvents = getMacroEvents({
+    date: expectedNextDate || currentDate,
+    location: character.location || '',
+    timeStep,
+    region: region || undefined
+  });
   const hasRealWorldContext = !!realWorldContext.trim();
   if (!expectedNextDate) {
     logWarn('Invalid current date for time step calculation', { currentDate, timeStep });
@@ -275,13 +432,27 @@ export const advanceLife = async (
      Options available previously: ${JSON.stringify(previousEvent.choices?.map(c => c.text))}` 
     : "Start of life.";
 
+  const altRules = isAlternative
+    ? `
+    11. ALTERNATIVE MECHANICS:
+       - Keep the world consistent with the ${altGenre || 'chosen'} genre (fantasy, scifi, superhero, or horror).
+       - Include a subtle but meaningful supernatural/tech/horror element in the scene.
+       - Maintain core trait continuity in statusEffects (Arcane Affinity, Tech-Augmented, Latent Power, Haunted).
+       - Avoid cartoonish power fantasy; consequences must feel real.
+    `
+    : '';
+
   const prompt = `
     Current Simulation Date: ${currentDate}
     Context:
     - Character: ${JSON.stringify(character)}
+    - Life Stage: ${getLifeStage(character.age || 0)}
     - Recent History Summary: ${historySummary}
     - User Decision (Cause): ${choiceMade || 'Passive existence / Time passing'}
     - Time Step to Advance: ${timeStep}
+    - Realism Intensity: ${realismIntensity}
+    - Research Mode: ${config?.researchMode ? 'ON' : 'OFF'}
+    - Macro World Events: ${JSON.stringify(macroEvents)}
     - Expected Next Date: ${expectedNextDate || 'Unknown (use time step)'}
     - Real World News Context: ${realWorldContext}
 
@@ -311,7 +482,27 @@ export const advanceLife = async (
        - Update character attributes to reflect the event and choice. Do not leave all stats unchanged.
        - Keep health/happiness/intelligence/social/energy in the 0-100 range.
        - Adjust personalWealth/familyWealth realistically based on circumstances.
+
+    6. CAUSAL EXPLANATION (Strict):
+       - Provide a short list of causes explaining why this event happened.
+       - Provide 1-3 counterfactuals (what might change the outcome).
+
+    7. LIFE LOGIC:
+       - Ensure education, career, relationships, and health events are plausible for the age and life stage.
+       - Show stage-appropriate dilemmas (school, work, family, civic life).
+
+    8. MILESTONES:
+       - If a major life milestone occurs (graduation, first job, first love, migration, loss), include it in 'milestones'.
+
+    9. ETHICS:
+       - Avoid rewarding harm. If harmful choices occur, show realistic consequences or tradeoffs.
+       - Avoid stereotypes or sensationalized tragedy.
+
+    10. RESEARCH ANALYSIS:
+       - If Research Mode is ON, include an 'analysis' object with a neutral summary and systemic/agency factors.
     
+    ${altRules}
+
     Return strict JSON.
   `;
 
@@ -344,6 +535,62 @@ export const advanceLife = async (
            inventory: { type: Type.ARRAY, items: { type: Type.STRING } },
            relationships: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, relation: { type: Type.STRING }, status: { type: Type.STRING } } } },
            statusEffects: { type: Type.ARRAY, items: { type: Type.STRING } },
+           lifeStage: { type: Type.STRING },
+           education: {
+             type: Type.OBJECT,
+             properties: {
+               level: { type: Type.STRING },
+               enrolled: { type: Type.BOOLEAN },
+               institutionQuality: { type: Type.NUMBER }
+             }
+           },
+           career: {
+             type: Type.OBJECT,
+             properties: {
+               status: { type: Type.STRING },
+               sector: { type: Type.STRING },
+               stability: { type: Type.NUMBER }
+             }
+           },
+           relationshipStatus: {
+             type: Type.OBJECT,
+             properties: {
+               status: { type: Type.STRING },
+               dependents: { type: Type.NUMBER },
+               caregiverLoad: { type: Type.NUMBER }
+             }
+           },
+           systems: {
+             type: Type.OBJECT,
+             properties: {
+               healthcareAccess: { type: Type.NUMBER },
+               schoolQuality: { type: Type.NUMBER },
+               laborMarket: { type: Type.NUMBER },
+               safety: { type: Type.NUMBER },
+               discrimination: { type: Type.NUMBER },
+               socialCapital: { type: Type.NUMBER },
+               migrationPolicy: { type: Type.NUMBER },
+               housingStability: { type: Type.NUMBER }
+             }
+           },
+           legacy: {
+             type: Type.OBJECT,
+             properties: {
+               children: { type: Type.NUMBER },
+               communityReputation: { type: Type.NUMBER },
+               culturalImpact: { type: Type.NUMBER },
+               generationalWealth: { type: Type.NUMBER }
+             }
+           },
+           drives: {
+             type: Type.OBJECT,
+             properties: {
+               belonging: { type: Type.NUMBER },
+               mastery: { type: Type.NUMBER },
+               autonomy: { type: Type.NUMBER },
+               meaning: { type: Type.NUMBER }
+             }
+           },
            hiddenMetrics: { 
              type: Type.ARRAY,
              items: {
@@ -354,7 +601,8 @@ export const advanceLife = async (
                }
              },
              description: "Updated hidden counters." 
-           }
+           },
+           altGenre: { type: Type.STRING }
         }
       },
       newEvent: {
@@ -365,6 +613,45 @@ export const advanceLife = async (
           description: { type: Type.STRING, description: "Visceral narrative ending with a situation requiring action." },
           visualPrompt: { type: Type.STRING },
           type: { type: Type.STRING, enum: ['neutral', 'positive', 'negative', 'major'] },
+          lifeStage: { type: Type.STRING },
+          causes: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                factor: { type: Type.STRING },
+                impact: { type: Type.STRING },
+                evidence: { type: Type.STRING }
+              }
+            }
+          },
+          counterfactuals: { type: Type.ARRAY, items: { type: Type.STRING } },
+          macroEvents: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                headline: { type: Type.STRING },
+                category: { type: Type.STRING },
+                scope: { type: Type.STRING },
+                date: { type: Type.STRING },
+                impactSummary: { type: Type.STRING }
+              }
+            }
+          },
+          milestones: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING }
+          },
+          analysis: {
+            type: Type.OBJECT,
+            properties: {
+              summary: { type: Type.STRING },
+              systemicFactors: { type: Type.ARRAY, items: { type: Type.STRING } },
+              agencyNotes: { type: Type.ARRAY, items: { type: Type.STRING } },
+              uncertainty: { type: Type.STRING }
+            }
+          },
           news: {
             type: Type.ARRAY,
             items: {
@@ -396,7 +683,10 @@ export const advanceLife = async (
     currentDate,
     timeStep,
     expectedNextDate,
-    hasRealWorldContext
+    hasRealWorldContext,
+    region,
+    researchMode: !!config?.researchMode,
+    altGenre
   });
 
   const response = await ai.models.generateContent({
@@ -445,7 +735,8 @@ export const advanceLife = async (
     choiceText: choiceMade,
     eventType: rawEvent.type,
     timeStep,
-    description: rawEvent.description
+    description: rawEvent.description,
+    realismIntensity
   });
 
   // Convert array of metrics back to Record for application use
@@ -460,10 +751,42 @@ export const advanceLife = async (
     // Keep old metrics if none returned or incorrect format
     Object.assign(metrics, character.hiddenMetrics);
   }
-  rawUpdatedChar.hiddenMetrics = metrics;
+
+  const moralResult = applyMoralFriction({
+    hiddenMetrics: metrics,
+    choiceText: choiceMade,
+    realismIntensity,
+    attributes: rawUpdatedChar.attributes
+  });
+
+  rawUpdatedChar.hiddenMetrics = { ...metrics, ...moralResult.hiddenMetrics };
+  rawUpdatedChar.attributes = moralResult.attributes;
 
   if (!rawUpdatedChar.birthday && character.birthday) {
     rawUpdatedChar.birthday = character.birthday;
+  }
+
+  rawUpdatedChar.lifeStage = getLifeStage(rawUpdatedChar.age || 0);
+  rawUpdatedChar.systems = normalizeSystems(rawUpdatedChar.systems || character.systems);
+  rawUpdatedChar.education = normalizeEducation(rawUpdatedChar.education || character.education, rawUpdatedChar.age);
+  rawUpdatedChar.career = normalizeCareer(rawUpdatedChar.career || character.career, rawUpdatedChar.age);
+  rawUpdatedChar.relationshipStatus = normalizeRelationship(rawUpdatedChar.relationshipStatus || character.relationshipStatus, rawUpdatedChar.age);
+  rawUpdatedChar.legacy = updateLegacy({
+    legacy: rawUpdatedChar.legacy || character.legacy,
+    description: rawEvent.description,
+    choiceText: choiceMade
+  });
+  rawUpdatedChar.drives = applyDriveAdjustments({
+    drives: rawUpdatedChar.drives || character.drives,
+    character: rawUpdatedChar as Character,
+    timeStep,
+    eventType: rawEvent.type,
+    description: rawEvent.description,
+    choiceText: choiceMade,
+    realismIntensity
+  });
+  if (isAlternative) {
+    rawUpdatedChar = ensureAlternativeProfile(rawUpdatedChar as Character, altGenre);
   }
 
   // Normalize event date to enforce time step consistency
@@ -481,6 +804,20 @@ export const advanceLife = async (
     eventDate = expectedNextDate;
   }
   rawEvent.date = eventDate;
+  rawEvent.lifeStage = rawUpdatedChar.lifeStage;
+  if (!Array.isArray(rawEvent.milestones) || rawEvent.milestones.length === 0) {
+    rawEvent.milestones = detectMilestones(rawEvent.description, rawEvent.lifeStage);
+  }
+  if (config?.researchMode && (!rawEvent.analysis || !rawEvent.analysis.summary)) {
+    rawEvent.analysis = buildResearchAnalysis({
+      character: rawUpdatedChar as Character,
+      event: rawEvent as LifeEvent,
+      choiceText: choiceMade
+    });
+  }
+  if (!Array.isArray(rawEvent.macroEvents) || rawEvent.macroEvents.length === 0) {
+    rawEvent.macroEvents = macroEvents as MacroEvent[];
+  }
 
   // Normalize age if the model drifts after time step changes
   const derivedAge = calculateAge(rawUpdatedChar.birthday, eventDate);
@@ -507,10 +844,45 @@ export const advanceLife = async (
     }));
   }
 
+  if (Array.isArray(rawEvent.macroEvents)) {
+    const macroNews = rawEvent.macroEvents.map((event) => macroEventToNews(event));
+    if (!Array.isArray(rawEvent.news) || rawEvent.news.length === 0) {
+      rawEvent.news = macroNews;
+    } else {
+      const existing = new Set(rawEvent.news.map((item) => item.headline));
+      rawEvent.news = [...rawEvent.news, ...macroNews.filter((item) => !existing.has(item.headline))].slice(0, 10);
+    }
+  }
+
+  if (!Array.isArray(rawEvent.causes) || rawEvent.causes.length === 0) {
+    rawEvent.causes = deriveCausalFactors({
+      character: rawUpdatedChar as Character,
+      event: rawEvent as LifeEvent,
+      choiceText: choiceMade,
+      config
+    });
+  }
+
+  if (!Array.isArray(rawEvent.counterfactuals) || rawEvent.counterfactuals.length === 0) {
+    rawEvent.counterfactuals = deriveCounterfactuals(rawUpdatedChar as Character);
+  }
+
+  if (isAlternative) {
+    rawUpdatedChar = applyAlternativeMechanics({
+      character: rawUpdatedChar as Character,
+      event: rawEvent as LifeEvent,
+      choiceText: choiceMade,
+      timeStep,
+      realismIntensity
+    });
+  }
+
   logDebug('Advance life result', {
     eventDate,
     eventType: rawEvent.type,
-    newsCount: Array.isArray(rawEvent.news) ? rawEvent.news.length : 0
+    newsCount: Array.isArray(rawEvent.news) ? rawEvent.news.length : 0,
+    milestonesCount: Array.isArray(rawEvent.milestones) ? rawEvent.milestones.length : 0,
+    hasAnalysis: !!rawEvent.analysis
   });
 
   return {
@@ -541,6 +913,14 @@ const buildFallbackNews = (context: string, date: string): NewsItem[] => {
     category: inferNewsCategory(sentence),
     date
   }));
+};
+
+const macroEventToNews = (event: MacroEvent): NewsItem => {
+  return {
+    headline: event.headline,
+    category: event.category,
+    date: event.date
+  } as NewsItem;
 };
 
 // --- Search Grounding for Real World Events ---

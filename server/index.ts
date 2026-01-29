@@ -211,7 +211,9 @@ app.post("/api/saves", async (req, res) => {
       timeStep: gameState.timeStep,
       character: gameState.character,
       currentEvent: gameState.currentEvent,
-      history: gameState.history || []
+      history: gameState.history || [],
+      config: gameState.config || null,
+      storyArcs: gameState.storyArcs || []
     });
     res.json(save);
   } catch (error: any) {
@@ -245,7 +247,9 @@ app.put("/api/saves/:id", async (req, res) => {
       timeStep: gameState.timeStep,
       character: gameState.character,
       currentEvent: gameState.currentEvent,
-      history: gameState.history || []
+      history: gameState.history || [],
+      config: gameState.config || null,
+      storyArcs: gameState.storyArcs || []
     });
     res.json(save);
   } catch (error) {

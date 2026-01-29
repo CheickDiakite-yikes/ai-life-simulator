@@ -1,5 +1,8 @@
 import { GameState, GameMode, LifeEvent } from '../types';
 import { logDebug, logError } from './logger';
+import { getDefaultBirthConfig } from './birthConfig';
+import { normalizeDrives } from './driveEngine';
+import { ensureAlternativeProfile } from './altMechanics';
 
 const API_BASE = '/api';
 
@@ -14,6 +17,8 @@ export interface SavedGame {
   character: any;
   currentEvent: any;
   history: any;
+  config?: any;
+  storyArcs?: any;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,7 +47,9 @@ export const saveGame = async (gameState: GameState, existingSaveId?: number): P
     timeStep: gameState.timeStep,
     character: gameState.character,
     currentEvent: gameState.currentEvent,
-    history: gameState.history
+    history: gameState.history,
+    config: gameState.config,
+    storyArcs: gameState.storyArcs
   };
   
   try {
@@ -138,8 +145,22 @@ export const loadGame = async (saveId: number): Promise<GameState | null> => {
       timeStep: (save.timeStep || 'Year') as any,
       isLoading: false,
       mode: save.mode as GameMode,
-      theme: save.theme || 'modern'
+      theme: save.theme || 'modern',
+      config: save.config || {
+        birthConfig: getDefaultBirthConfig(),
+        realismIntensity: 'true',
+        researchMode: false,
+        showCausality: false
+      },
+      storyArcs: (save.storyArcs as any[]) || []
     };
+    
+    if (gameState.character) {
+      gameState.character.drives = normalizeDrives(gameState.character.drives, gameState.character);
+      if (gameState.mode === GameMode.ALTERNATIVE) {
+        gameState.character = ensureAlternativeProfile(gameState.character);
+      }
+    }
     
     logDebug('Loaded game', { saveId, characterName: gameState.character?.name, historyLength: gameState.history.length });
     return gameState;

@@ -75,6 +75,15 @@ export const addTimeStep = (dateStr: string, step: TimeStep): string | null => {
   return formatISODate(next);
 };
 
+export const randomDateInYear = (year: number): string | null => {
+  if (!Number.isFinite(year)) return null;
+  const safeYear = Math.floor(year);
+  if (safeYear < 1000 || safeYear > 3000) return null;
+  const month = Math.floor(Math.random() * 12);
+  const day = Math.floor(Math.random() * daysInMonth(safeYear, month)) + 1;
+  return formatISODate(new Date(Date.UTC(safeYear, month, day)));
+};
+
 export const calculateAge = (birthdayStr: string, dateStr: string): number | null => {
   const birthday = parseISODate(birthdayStr);
   const date = parseISODate(dateStr);

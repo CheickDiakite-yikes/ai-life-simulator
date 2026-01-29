@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameMode, Character, GameState, LifeEvent, TimeStep } from './types';
+import { AltGenre, GameMode, Character, GameState, LifeEvent, SimulationConfig, TimeStep, WorldRegion } from './types';
 import { generateInitialCharacter, advanceLife, getRealWorldContext } from './services/geminiLoader';
 import { Dashboard } from './components/Dashboard';
 import { GreekBackground } from './components/GreekBackground';
@@ -7,10 +7,17 @@ import { StarBackground } from './components/StarBackground';
 import { ChatInterface } from './components/ChatInterface';
 import { SavedGamesSection } from './components/SavedGamesSection';
 import AuthPage, { AuthUser } from './components/AuthPage';
+import { SimulationSettings } from './components/SimulationSettings';
+import { EthicsModal } from './components/EthicsModal';
+import { MultiLifeComparison } from './components/MultiLifeComparison';
 import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, MapPin, User, Scroll, LogOut } from 'lucide-react';
 import { addRecentStart, getRecentStarts } from './services/simulationMemory';
+import { randomDateInYear } from './services/timeUtils';
 import { logDebug, logError, logWarn } from './services/logger';
 import { saveGame, loadSavedGames, loadGame, deleteSavedGame, SavedGame } from './services/saveGameService';
+import { getDefaultBirthConfig } from './services/birthConfig';
+import { updateStoryArcs } from './services/arcEngine';
+import { pickAltGenre } from './services/altMechanics';
 
 interface AppProps {
   onBackToLanding?: () => void;
@@ -23,6 +30,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isEthicsOpen, setIsEthicsOpen] = useState(false);
   
   // Selection Screen State
   const [selectedModeIndex, setSelectedModeIndex] = useState(0);
@@ -37,6 +45,17 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   const [loadingGameId, setLoadingGameId] = useState<number | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [simulationConfig, setSimulationConfig] = useState<SimulationConfig>({
+    birthConfig: getDefaultBirthConfig(),
+    realismIntensity: 'true',
+    researchMode: false,
+    showCausality: false
+  });
+
+  const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [comparisonLives, setComparisonLives] = useState<{ region: WorldRegion; character: Character }[]>([]);
+
   const [gameState, setGameState] = useState<GameState>({
     character: {} as Character,
     history: [],
@@ -45,10 +64,26 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     timeStep: 'Year',
     isLoading: false,
     mode: GameMode.REAL_LIFE,
-    theme: 'modern'
+    theme: 'modern',
+    config: {
+      birthConfig: getDefaultBirthConfig(),
+      realismIntensity: 'true',
+      researchMode: false,
+      showCausality: false
+    },
+    storyArcs: []
   });
 
   const [customInputs, setCustomInputs] = useState({ name: '', location: '' });
+  const [startYearInput, setStartYearInput] = useState('');
+  const [altGenreInput, setAltGenreInput] = useState<AltGenre | ''>('');
+
+  const parseStartYear = (): number | null => {
+    const year = Number(startYearInput);
+    if (!Number.isFinite(year)) return null;
+    if (year < 1000 || year > 3000) return null;
+    return Math.floor(year);
+  };
 
   // Check authentication on mount
   useEffect(() => {
@@ -192,7 +227,18 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       }
 
       const recentStarts = getRecentStarts();
-      const character = await generateInitialCharacter(mode, inputs, { recentStarts });
+      const startYear = parseStartYear();
+      const birthDate = startYear ? randomDateInYear(startYear) : null;
+      const fixedTraits = birthDate ? { age: 0, birthday: birthDate } : undefined;
+      const altGenre = mode === GameMode.ALTERNATIVE
+        ? (altGenreInput ? altGenreInput : pickAltGenre())
+        : undefined;
+      const character = await generateInitialCharacter(mode, inputs, {
+        recentStarts,
+        config: simulationConfig,
+        fixedTraits,
+        altGenre
+      });
       addRecentStart({
         name: character.name,
         location: character.location,
@@ -206,6 +252,11 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         date: character.birthday,
         description: `You are born into this world. Your name is ${character.name}. You were born in ${character.location}. ${character.bio}`,
         type: 'major',
+        lifeStage: character.lifeStage,
+        milestones: ['Birth'],
+        causes: [
+          { factor: 'Birth circumstances', impact: 'high', evidence: 'Starting conditions set by family and environment.' }
+        ],
         choices: [
           { id: 'cry', text: 'Cry loudly', consequenceHint: 'Tests lung capacity' },
           { id: 'sleep', text: 'Sleep peacefully', consequenceHint: 'Parents are relieved' },
@@ -221,7 +272,9 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         timeStep: 'Year',
         isLoading: false,
         mode,
-        theme: mode === GameMode.ALTERNATIVE ? 'fantasy' : 'modern'
+        theme: mode === GameMode.ALTERNATIVE ? altGenre || 'fantasy' : 'modern',
+        config: simulationConfig,
+        storyArcs: []
       });
       setGameStarted(true);
       logDebug('Game started', { mode, location: character.location, ethnicity: character.ethnicity });
@@ -229,6 +282,57 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       handleApiError(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCompareLives = async () => {
+    setComparisonOpen(true);
+    setComparisonLoading(true);
+    setComparisonLives([]);
+    try {
+      const regions: WorldRegion[] = ['Africa', 'Americas', 'Asia', 'Europe'];
+      const seed = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      const recentStarts = getRecentStarts();
+      const startYear = parseStartYear();
+      const birthDate = startYear ? randomDateInYear(startYear) : null;
+      const fixedBirth = birthDate ? { age: 0, birthday: birthDate } : undefined;
+      const baseline = await generateInitialCharacter(GameMode.REAL_LIFE, undefined, {
+        recentStarts,
+        config: simulationConfig,
+        seed,
+        fixedTraits: fixedBirth
+      });
+      const fixedTraits = {
+        name: baseline.name,
+        gender: baseline.gender,
+        ethnicity: baseline.ethnicity,
+        age: baseline.age,
+        birthday: baseline.birthday,
+        attributes: {
+          intelligence: baseline.attributes.intelligence,
+          energy: baseline.attributes.energy
+        }
+      };
+      const results = await Promise.all(
+        regions.map((region) =>
+          generateInitialCharacter(GameMode.REAL_LIFE, undefined, {
+            recentStarts,
+            config: simulationConfig,
+            regionHint: region,
+            seed,
+            fixedTraits
+          })
+        )
+      );
+      const lives = results.map((character, index) => ({
+        region: regions[index],
+        character
+      }));
+      setComparisonLives(lives);
+    } catch (error) {
+      logError('Failed to generate comparison lives', error);
+    } finally {
+      setComparisonLoading(false);
     }
   };
 
@@ -240,7 +344,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     setGameState(prev => ({ ...prev, isLoading: true }));
     try {
       let context = "";
-      if (Math.random() > 0.6) {
+      if (gameState.config.researchMode || Math.random() > 0.6) {
          context = await getRealWorldContext();
       }
       logDebug('Advancing with choice', { choiceId, timeStep: gameState.timeStep });
@@ -250,14 +354,22 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         choiceText,
         gameState.currentDate,
         gameState.timeStep,
-        context
+        gameState.config,
+        context,
+        { mode: gameState.mode, altGenre: gameState.mode === GameMode.ALTERNATIVE ? (gameState.theme as AltGenre) : undefined }
       );
+      const updatedArcs = updateStoryArcs({
+        arcs: gameState.storyArcs,
+        description: event.description,
+        choiceText
+      });
       setGameState(prev => ({
         ...prev,
         character,
         currentEvent: event,
         currentDate: event.date,
         history: [...prev.history, prev.currentEvent!],
+        storyArcs: updatedArcs,
         isLoading: false
       }));
     } catch (err) {
@@ -275,13 +387,24 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     setGameState(prev => ({ ...prev, timeStep: step }));
   };
 
+  const handleConfigChange = (nextConfig: SimulationConfig) => {
+    setGameState(prev => ({ ...prev, config: nextConfig }));
+    setSimulationConfig(nextConfig);
+  };
+
   const handleLoadGame = async (saveId: number) => {
     setLoadingGameId(saveId);
     setError(null);
     try {
       const loadedState = await loadGame(saveId);
       if (loadedState) {
-        setGameState(loadedState);
+        const normalizedConfig = loadedState.config || simulationConfig;
+        setGameState({
+          ...loadedState,
+          config: normalizedConfig,
+          storyArcs: loadedState.storyArcs || []
+        });
+        setSimulationConfig(normalizedConfig);
         setCurrentSaveId(saveId);
         setGameStarted(true);
         logDebug('Loaded saved game', { saveId, characterName: loadedState.character?.name });
@@ -330,6 +453,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
     // Return to selection screen
     setGameStarted(false);
     setCurrentSaveId(null);
+    setSimulationConfig(gameState.config);
   };
 
   const nextMode = () => {
@@ -369,10 +493,16 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
   const gameContext = gameStarted ? [
     `Mode: ${gameState.mode}`,
     `Date: ${gameState.currentDate} (Time step: ${gameState.timeStep})`,
+    `Realism: ${gameState.config.realismIntensity}, Research: ${gameState.config.researchMode ? 'On' : 'Off'}`,
     `Character: ${gameState.character.name}, age ${gameState.character.age}, ${gameState.character.gender}, ${gameState.character.ethnicity}, location ${gameState.character.location}`,
+    `Life Stage: ${gameState.character.lifeStage || 'Unknown'}`,
     `Vitals: health ${gameState.character.attributes?.health}, mental ${gameState.character.attributes?.happiness}, energy ${gameState.character.attributes?.energy}`,
     `Wealth: personal ${gameState.character.attributes?.personalWealth}, family ${gameState.character.attributes?.familyWealth}`,
+    `Drives: ${gameState.character.drives ? JSON.stringify(gameState.character.drives) : 'Unknown'}`,
+    `Systems: ${gameState.character.systems ? JSON.stringify(gameState.character.systems) : 'Unknown'}`,
     `Current Event: ${gameState.currentEvent?.description || 'None'}`,
+    `Alt Genre: ${gameState.character.altGenre || 'None'}`,
+    `Story Arcs: ${gameState.storyArcs.map(arc => `${arc.title} (${arc.status})`).join(' | ') || 'None'}`,
     `Recent Events: ${gameState.history.slice(-3).map(event => event.description).join(' | ') || 'None'}`
   ].join('\n') : '';
 
@@ -515,6 +645,24 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                                />
                              </div>
                            </div>
+                        ) : mode.mode === GameMode.ALTERNATIVE ? (
+                          <div className="space-y-3 mb-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                            <label className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-heading">Sub-Genre (Optional)</label>
+                            <select
+                              value={altGenreInput}
+                              onChange={(e) => setAltGenreInput(e.target.value as AltGenre | '')}
+                              className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2.5 px-3 text-sm text-stone-800 focus:border-amber-600 focus:outline-none transition-colors font-serif"
+                            >
+                              <option value="">Random</option>
+                              <option value="fantasy">Fantasy</option>
+                              <option value="scifi">Sci-Fi</option>
+                              <option value="superhero">Superhero</option>
+                              <option value="horror">Horror</option>
+                            </select>
+                            <p className="text-xs text-stone-500 font-serif italic">
+                              Leave blank for a random world.
+                            </p>
+                          </div>
                         ) : (
                           <div className="mb-8 opacity-40">
                              <Scroll size={32} className="mx-auto text-stone-400" />
@@ -551,6 +699,41 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
           </div>
         </div>
 
+        <div className="w-full px-4 mb-6 z-10">
+          <SimulationSettings
+            config={simulationConfig}
+            onChange={setSimulationConfig}
+          />
+          <div className="mt-4 max-w-3xl mx-auto bg-stone-900/60 backdrop-blur-sm border border-stone-700 rounded-xl p-4 md:p-6 text-left">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <h3 className="text-xs md:text-sm font-heading tracking-widest uppercase text-stone-300">Start Year (Optional)</h3>
+              <span className="text-[10px] text-stone-500 font-heading tracking-widest uppercase">Today: Jan 29, 2026</span>
+            </div>
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
+              <input
+                type="number"
+                min={1000}
+                max={3000}
+                placeholder="e.g., 1994"
+                value={startYearInput}
+                onChange={(e) => setStartYearInput(e.target.value)}
+                className="w-full md:w-48 bg-stone-800 border border-stone-700 rounded-lg px-3 py-2 text-sm text-stone-200 placeholder-stone-600 focus:border-amber-600 focus:outline-none font-serif"
+              />
+              <p className="text-xs text-stone-500 font-serif">
+                Leave blank to randomize birth year. If set, the character starts as a newborn in that year.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={handleCompareLives}
+              className="px-4 py-2 text-[11px] font-heading tracking-widest uppercase border border-amber-700/50 text-amber-200 bg-amber-900/30 hover:bg-amber-900/50 rounded-lg transition-colors"
+            >
+              Parallel Lives Lab
+            </button>
+          </div>
+        </div>
+
         {/* Saved Games Section */}
         {savedGames.length > 0 && (
           <SavedGamesSection
@@ -582,11 +765,17 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
            )}
         </div>
 
+        <MultiLifeComparison
+          isOpen={comparisonOpen}
+          isLoading={comparisonLoading}
+          lives={comparisonLives}
+          onClose={() => setComparisonOpen(false)}
+        />
       </div>
     );
   }
 
-  const BackgroundComponent = gameState.theme === 'fantasy' ? StarBackground : GreekBackground;
+  const BackgroundComponent = gameState.theme === 'modern' ? GreekBackground : StarBackground;
 
   return (
     <div className="relative min-h-screen">
@@ -604,12 +793,21 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
         onPlay={handlePlay}
         onReturnToSelection={handleReturnToSelection}
+        config={gameState.config}
+        storyArcs={gameState.storyArcs}
+        onConfigChange={handleConfigChange}
+        onOpenEthics={() => setIsEthicsOpen(true)}
       />
       <ChatInterface 
         isOpen={isChatOpen} 
         onClose={() => setIsChatOpen(false)}
         onOpen={() => setIsChatOpen(true)}
         gameContext={gameContext}
+      />
+      <EthicsModal
+        isOpen={isEthicsOpen}
+        onClose={() => setIsEthicsOpen(false)}
+        config={gameState.config}
       />
     </div>
   );

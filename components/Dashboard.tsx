@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Character, LifeEvent, TimeStep, NewsItem } from '../types';
+import { Character, LifeEvent, TimeStep, NewsItem, SimulationConfig, NarrativeArc } from '../types';
 import { generateSceneImage, generateSceneVideo, generateSpeech } from '../services/geminiLoader';
 import { 
   Heart, Zap, Brain, Wallet, User, Calendar, Pause, Play, 
@@ -18,15 +18,20 @@ interface DashboardProps {
   isChatOpen: boolean;
   onToggleChat: () => void;
   onPlay: () => void;
+  config: SimulationConfig;
+  storyArcs: NarrativeArc[];
+  onConfigChange: (config: SimulationConfig) => void;
+  onOpenEthics: () => void;
   onReturnToSelection?: () => void;
 }
 
 // Sub-component for individual Event Cards to manage their own media state
-const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event, isCurrent = false }) => {
+const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality?: boolean }> = ({ event, isCurrent = false, showCausality = false }) => {
   const [imgUrl, setImgUrl] = useState<string | undefined>(event.imageUrl);
   const [vidUrl, setVidUrl] = useState<string | undefined>(event.videoUrl);
   const [audioUrl, setAudioUrl] = useState<string | undefined>(event.audioUrl);
   const [loadingMedia, setLoadingMedia] = useState<'image' | 'video' | 'audio' | null>(null);
+  const [showWhy, setShowWhy] = useState(false);
 
   const formatDisplayDate = (dateStr: string) => {
     try {
@@ -147,6 +152,53 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean }> = ({ event,
               <Scroll size={14} className="text-amber-700" /> Chronicle Entry
             </h4>
             <p className="text-sm sm:text-base text-stone-300 leading-relaxed whitespace-pre-line font-serif break-words">{event.description}</p>
+
+            {event.milestones && event.milestones.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {event.milestones.map((milestone, idx) => (
+                  <span
+                    key={`${milestone}-${idx}`}
+                    className="px-2 py-1 text-[10px] uppercase tracking-widest font-heading text-amber-200 bg-amber-900/30 border border-amber-700/40 rounded-full"
+                  >
+                    {milestone}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {showCausality && event.causes && event.causes.length > 0 && (
+              <div className="mt-4 border-t border-stone-800 pt-4">
+                <button
+                  onClick={() => setShowWhy(!showWhy)}
+                  className="text-xs font-heading tracking-wider uppercase text-amber-400 hover:text-amber-300"
+                >
+                  {showWhy ? 'Hide' : 'Why this happened'}
+                </button>
+                {showWhy && (
+                  <div className="mt-3 space-y-2 text-xs text-stone-400 font-serif">
+                    {event.causes.map((cause, idx) => (
+                      <div key={`${cause.factor}-${idx}`} className="flex items-start gap-2">
+                        <span className="uppercase text-[10px] text-stone-500 font-heading mt-0.5">{cause.impact}</span>
+                        <div>
+                          <div>{cause.factor}</div>
+                          {cause.evidence && <div className="text-[11px] text-stone-600 italic">{cause.evidence}</div>}
+                        </div>
+                      </div>
+                    ))}
+                    {event.counterfactuals && event.counterfactuals.length > 0 && (
+                      <div className="mt-2 text-[11px] text-stone-500">
+                        <span className="uppercase text-[10px] text-stone-600 font-heading">Counterfactuals:</span>
+                        <ul className="mt-1 list-disc list-inside space-y-1">
+                          {event.counterfactuals.map((item, idx) => (
+                            <li key={`${item}-${idx}`}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
             
             {/* Media Display */}
             <div className="mt-4">
@@ -215,12 +267,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
   isChatOpen,
   onToggleChat,
   onPlay,
+  config,
+  storyArcs,
+  onConfigChange,
+  onOpenEthics,
   onReturnToSelection
 }) => {
   const [customInput, setCustomInput] = useState('');
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
-  const [mobileTab, setMobileTab] = useState<'profile' | 'feed' | 'news'>('feed');
+  const [mobileTab, setMobileTab] = useState<'profile' | 'feed' | 'news' | 'insights'>('feed');
+  const [rightTab, setRightTab] = useState<'world' | 'insights'>('world');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const activeSidebarTab = mobileTab === 'insights' ? 'insights' : mobileTab === 'news' ? 'world' : rightTab;
+
+  const handleResearchToggle = () => {
+    onConfigChange({
+      ...config,
+      researchMode: !config.researchMode,
+      showCausality: !config.researchMode ? true : config.showCausality
+    });
+  };
 
   // Auto-scroll to bottom of feed
   useEffect(() => {
@@ -276,6 +342,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
     </div>
   );
 
+  const SystemBar = ({ label, value }: { label: string; value: number }) => (
+    <div className="mb-3">
+      <div className="flex justify-between items-center mb-1 text-[10px] text-stone-500 font-heading tracking-widest uppercase">
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+      <div className="w-full bg-stone-800 h-1.5 rounded-full overflow-hidden border border-stone-700">
+        <div
+          className="h-full rounded-full transition-all duration-500 bg-sky-700"
+          style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        />
+      </div>
+    </div>
+  );
+
+  const DriveBar = ({ label, value, color }: { label: string; value: number; color: string }) => (
+    <div className="mb-3">
+      <div className="flex justify-between items-center mb-1 text-[10px] text-stone-500 font-heading tracking-widest uppercase">
+        <span>{label}</span>
+        <span>{value}%</span>
+      </div>
+      <div className="w-full bg-stone-800 h-1.5 rounded-full overflow-hidden border border-stone-700">
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${Math.min(100, Math.max(0, value))}%`, backgroundColor: color }}
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 bg-[#0c0a09] text-stone-200 flex flex-col font-serif overflow-x-hidden">
       
@@ -287,7 +383,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           
           {/* Desktop Title - Clickable to return to game selection */}
           <button 
-            onClick={onReturnToSelection}
+            onClick={() => onReturnToSelection?.()}
             className="hidden md:block text-xl font-bold tracking-[0.2em] text-amber-500 font-heading drop-shadow-sm hover:text-amber-400 transition-colors cursor-pointer"
             title="Return to game selection"
           >
@@ -296,7 +392,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Mobile Title & Date Stacked - Clickable to return to game selection */}
           <button 
-            onClick={onReturnToSelection}
+            onClick={() => onReturnToSelection?.()}
             className="md:hidden flex flex-col justify-center flex-shrink-0 text-left"
             title="Return to game selection"
           >
@@ -342,6 +438,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
             ))}
           </div>
           <div className="w-px h-6 bg-stone-700 mx-0.5 sm:mx-1 md:mx-2"></div>
+          <button
+            onClick={handleResearchToggle}
+            className={`px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] md:text-xs font-bold font-heading tracking-wide sm:tracking-wider rounded-sm transition-colors border ${
+              config.researchMode
+                ? 'bg-emerald-800 text-emerald-100 border-emerald-700'
+                : 'bg-stone-800 text-stone-400 border-stone-700 hover:text-stone-200'
+            }`}
+            title="Toggle Research Mode"
+          >
+            RESEARCH
+          </button>
+          <button
+            onClick={onOpenEthics}
+            className="px-2 sm:px-3 py-1 text-[9px] sm:text-[10px] md:text-xs font-bold font-heading tracking-wide sm:tracking-wider rounded-sm transition-colors border bg-stone-800 text-stone-400 border-stone-700 hover:text-amber-200"
+            title="Ethics Dashboard"
+          >
+            ETHICS
+          </button>
           <button 
              onClick={onPlay}
              disabled={isLoading}
@@ -371,6 +485,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <p className="text-xs text-stone-600 text-center flex items-center gap-1 mt-1 justify-center font-heading">
               <Globe size={10} /> {character.location}
             </p>
+            {character.lifeStage && (
+              <span className="text-[10px] uppercase tracking-widest text-stone-500 mt-2">{character.lifeStage}</span>
+            )}
             {character.ethnicity && (
               <span className="text-[10px] uppercase tracking-widest text-stone-700 mt-2 border-t border-stone-800 pt-2 w-full text-center">{character.ethnicity}</span>
             )}
@@ -388,6 +505,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <VitalBar label="Energy" value={character.attributes.energy || 100} color="#d97706" icon={Zap} />
           </div>
 
+          {character.drives && (
+            <div className="mb-8">
+              <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Purpose</h3>
+              <DriveBar label="Belonging" value={character.drives.belonging} color="#f97316" />
+              <DriveBar label="Mastery" value={character.drives.mastery} color="#eab308" />
+              <DriveBar label="Autonomy" value={character.drives.autonomy} color="#22c55e" />
+              <DriveBar label="Meaning" value={character.drives.meaning} color="#38bdf8" />
+            </div>
+          )}
+
           <div className="mb-8">
             <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Assets</h3>
             <div className="space-y-3">
@@ -401,6 +528,90 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
           </div>
+
+          <div className="mb-8">
+            <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Life Context</h3>
+            <div className="space-y-2 text-[11px] text-stone-400 font-serif">
+              <div className="flex justify-between">
+                <span>Education</span>
+                <span>{character.education?.level || 'Unknown'} {character.education?.enrolled ? '(Enrolled)' : ''}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Career</span>
+                <span>{character.career?.status || 'Unknown'} {character.career?.sector ? `- ${character.career.sector}` : ''}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Relationship</span>
+                <span>{character.relationshipStatus?.status || 'Unknown'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Dependents</span>
+                <span>{character.relationshipStatus?.dependents ?? 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {(character.altGenre || (character.statusEffects && character.statusEffects.length > 0)) && (
+            <div className="mb-8">
+              <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Traits</h3>
+              {character.altGenre && (
+                <div className="text-[10px] uppercase tracking-widest text-amber-400 font-heading mb-2">
+                  World: {character.altGenre}
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {(character.statusEffects || []).map((effect) => (
+                  <span key={effect} className="text-[10px] px-2 py-1 bg-stone-900/60 border border-stone-700 rounded text-stone-300 font-heading uppercase tracking-widest">
+                    {effect}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {character.systems && (
+            <div className="mb-8">
+              <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Opportunity Systems</h3>
+              <SystemBar label="Healthcare" value={character.systems.healthcareAccess} />
+              <SystemBar label="School Quality" value={character.systems.schoolQuality} />
+              <SystemBar label="Labor Market" value={character.systems.laborMarket} />
+              <SystemBar label="Safety" value={character.systems.safety} />
+              <SystemBar label="Social Capital" value={character.systems.socialCapital} />
+              <SystemBar label="Housing" value={character.systems.housingStability} />
+              <SystemBar label="Discrimination" value={character.systems.discrimination} />
+            </div>
+          )}
+
+          {storyArcs.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Story Arcs</h3>
+              <div className="space-y-3">
+                {storyArcs.map((arc) => (
+                  <div key={arc.id} className="bg-[#292524] border border-stone-700 rounded-sm p-3">
+                    <div className="flex items-center justify-between text-xs font-heading tracking-wider text-stone-400">
+                      <span>{arc.title}</span>
+                      <span className="text-[10px] uppercase text-stone-500">{arc.status}</span>
+                    </div>
+                    <div className="mt-2 w-full bg-stone-800 h-1.5 rounded-full overflow-hidden border border-stone-700">
+                      <div className="h-full bg-amber-700" style={{ width: `${arc.intensity}%` }}></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {character.legacy && (
+            <div className="mb-8">
+              <h3 className="text-xs font-bold text-stone-600 uppercase tracking-[0.2em] mb-4 font-heading border-b border-stone-800 pb-2">Legacy</h3>
+              <div className="space-y-2 text-[11px] text-stone-400 font-serif">
+                <div className="flex justify-between"><span>Children</span><span>{character.legacy.children ?? 0}</span></div>
+                <div className="flex justify-between"><span>Community</span><span>{character.legacy.communityReputation ?? 0}</span></div>
+                <div className="flex justify-between"><span>Cultural Impact</span><span>{character.legacy.culturalImpact ?? 0}</span></div>
+                <div className="flex justify-between"><span>Generational Wealth</span><span>{character.legacy.generationalWealth ?? 0}</span></div>
+              </div>
+            </div>
+          )}
 
           {/* Hidden Metrics Debug/Insight */}
           {character.hiddenMetrics && Object.keys(character.hiddenMetrics).length > 0 && (
@@ -427,11 +638,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-8 space-y-6 sm:space-y-8 scroll-smooth custom-scrollbar pb-32 md:pb-8" ref={scrollRef}>
             {/* Render history */}
             {history.map((event, idx) => (
-              <EventCard key={idx} event={event} />
+              <EventCard key={idx} event={event} showCausality={config.showCausality || config.researchMode} />
             ))}
 
             {currentEvent && !history.includes(currentEvent) && (
-              <EventCard event={currentEvent} isCurrent />
+              <EventCard event={currentEvent} isCurrent showCausality={config.showCausality || config.researchMode} />
             )}
             
             {/* Pending Event Indicator */}
@@ -490,41 +701,149 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         </main>
 
-        {/* --- Right Sidebar: World News --- */}
+        {/* --- Right Sidebar: World + Insights --- */}
         <aside className={`
           md:block md:col-span-3 border-l border-stone-800 bg-[#1c1917] p-6 overflow-y-auto custom-scrollbar
-          ${mobileTab === 'news' ? 'block absolute inset-0 z-10' : 'hidden'}
+          ${mobileTab === 'news' || mobileTab === 'insights' ? 'block absolute inset-0 z-10' : 'hidden'}
         `}>
-           <div className="flex items-center gap-2 mb-6 sticky top-0 bg-[#1c1917] z-10 py-2 border-b border-stone-800">
-              <Newspaper size={16} className="text-stone-500" />
-              <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest font-heading">World Feed</h3>
+           <div className="flex items-center justify-between gap-2 mb-6 sticky top-0 bg-[#1c1917] z-10 py-2 border-b border-stone-800">
+              <div className="flex items-center gap-2">
+                {activeSidebarTab === 'world' ? (
+                  <Newspaper size={16} className="text-stone-500" />
+                ) : (
+                  <Sparkles size={16} className="text-stone-500" />
+                )}
+                <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest font-heading">
+                  {activeSidebarTab === 'world' ? 'World Feed' : 'Insights'}
+                </h3>
+              </div>
+              <div className="hidden md:flex items-center gap-2">
+                <button
+                  onClick={() => setRightTab('world')}
+                  className={`px-2 py-1 text-[10px] uppercase font-heading tracking-widest border rounded ${
+                    rightTab === 'world' ? 'bg-stone-800 text-amber-200 border-amber-700/50' : 'text-stone-500 border-stone-700'
+                  }`}
+                >
+                  World
+                </button>
+                <button
+                  onClick={() => setRightTab('insights')}
+                  className={`px-2 py-1 text-[10px] uppercase font-heading tracking-widest border rounded ${
+                    rightTab === 'insights' ? 'bg-stone-800 text-amber-200 border-amber-700/50' : 'text-stone-500 border-stone-700'
+                  }`}
+                >
+                  Insights
+                </button>
+              </div>
            </div>
 
-           <div className="space-y-6">
-              {allNews.length > 0 ? (
-                allNews.map((news, i) => (
-                  <div key={i} className="group cursor-default animate-fade-in">
-                     <div className="flex justify-between items-baseline mb-1">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider font-heading ${
-                          news.category === 'POLITICS' ? 'text-red-400' : 
-                          news.category === 'TECH' ? 'text-sky-400' :
-                          news.category === 'HEALTH' ? 'text-emerald-400' : 
-                          news.category === 'WORLD' ? 'text-amber-400' : 'text-stone-400'
-                        }`}>
-                          {news.category}
-                        </span>
-                        <span className="text-[10px] text-stone-600 font-mono">{formatDisplayDate(news.date)}</span>
-                     </div>
-                     <h4 className="text-sm font-medium text-stone-300 group-hover:text-amber-100 transition-colors leading-snug font-serif">
-                       {news.headline}
-                     </h4>
-                     <div className="h-px w-full bg-gradient-to-r from-transparent via-stone-800 to-transparent mt-4 group-last:hidden"></div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-xs text-stone-600 italic text-center py-10 font-serif">The world is quiet...</div>
-              )}
-           </div>
+           {activeSidebarTab === 'world' && (
+             <div className="space-y-6">
+                {allNews.length > 0 ? (
+                  allNews.map((news, i) => (
+                    <div key={i} className="group cursor-default animate-fade-in">
+                       <div className="flex justify-between items-baseline mb-1">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider font-heading ${
+                            news.category === 'POLITICS' ? 'text-red-400' : 
+                            news.category === 'TECH' ? 'text-sky-400' :
+                            news.category === 'HEALTH' ? 'text-emerald-400' : 
+                            news.category === 'WORLD' ? 'text-amber-400' : 'text-stone-400'
+                          }`}>
+                            {news.category}
+                          </span>
+                          <span className="text-[10px] text-stone-600 font-mono">{formatDisplayDate(news.date)}</span>
+                       </div>
+                       <h4 className="text-sm font-medium text-stone-300 group-hover:text-amber-100 transition-colors leading-snug font-serif">
+                         {news.headline}
+                       </h4>
+                       <div className="h-px w-full bg-gradient-to-r from-transparent via-stone-800 to-transparent mt-4 group-last:hidden"></div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs text-stone-600 italic text-center py-10 font-serif">The world is quiet...</div>
+                )}
+             </div>
+           )}
+
+           {activeSidebarTab === 'insights' && (
+             <div className="space-y-6 text-sm text-stone-400 font-serif">
+               {currentEvent?.analysis && (config.researchMode || config.showCausality) && (
+                 <div>
+                   <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-3">Research Summary</h4>
+                   <div className="bg-stone-900/70 border border-stone-700 p-3 rounded-sm text-xs">
+                     <div className="text-stone-300">{currentEvent.analysis.summary}</div>
+                     {currentEvent.analysis.systemicFactors && currentEvent.analysis.systemicFactors.length > 0 && (
+                       <div className="mt-2 text-stone-500">
+                         <span className="uppercase text-[10px] font-heading text-stone-600">Systemic:</span>{' '}
+                         {currentEvent.analysis.systemicFactors.join('; ')}
+                       </div>
+                     )}
+                     {currentEvent.analysis.agencyNotes && currentEvent.analysis.agencyNotes.length > 0 && (
+                       <div className="mt-2 text-stone-500">
+                         <span className="uppercase text-[10px] font-heading text-stone-600">Agency:</span>{' '}
+                         {currentEvent.analysis.agencyNotes.join('; ')}
+                       </div>
+                     )}
+                     {currentEvent.analysis.uncertainty && (
+                       <div className="mt-2 text-[10px] text-stone-600 italic">{currentEvent.analysis.uncertainty}</div>
+                     )}
+                   </div>
+                 </div>
+               )}
+
+               {currentEvent?.macroEvents && currentEvent.macroEvents.length > 0 && (
+                 <div>
+                   <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-3">Macro Events</h4>
+                   <div className="space-y-3">
+                     {currentEvent.macroEvents.map((event, idx) => (
+                       <div key={`${event.headline}-${idx}`} className="bg-stone-900/70 border border-stone-700 p-3 rounded-sm">
+                         <div className="flex justify-between text-[10px] uppercase tracking-wider font-heading text-stone-500">
+                           <span>{event.category}</span>
+                           <span>{formatDisplayDate(event.date)}</span>
+                         </div>
+                         <div className="text-sm text-stone-300 mt-1">{event.headline}</div>
+                         {event.impactSummary && <div className="text-xs text-stone-500 mt-2 italic">{event.impactSummary}</div>}
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
+               {currentEvent?.causes && currentEvent.causes.length > 0 && (
+                 <div>
+                   <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-3">Causal Threads</h4>
+                   <div className="space-y-2 text-xs">
+                     {currentEvent.causes.map((cause, idx) => (
+                       <div key={`${cause.factor}-${idx}`} className="flex items-start gap-2">
+                         <span className="uppercase text-[10px] text-stone-600 font-heading">{cause.impact}</span>
+                         <div>{cause.factor}</div>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
+               {storyArcs.length > 0 && (
+                 <div>
+                   <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-3">Active Arcs</h4>
+                   <div className="space-y-2">
+                     {storyArcs.map((arc) => (
+                       <div key={arc.id} className="flex items-center justify-between text-xs">
+                         <span>{arc.title}</span>
+                         <span className="text-[10px] text-stone-500 uppercase">{arc.status}</span>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
+
+               {!currentEvent?.macroEvents?.length && !currentEvent?.causes?.length && storyArcs.length === 0 && (
+                 <div className="text-xs text-stone-600 italic text-center py-10 font-serif">
+                   Insights will appear as the story unfolds...
+                 </div>
+               )}
+             </div>
+           )}
         </aside>
 
       </div>
@@ -553,6 +872,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
          >
            <Globe size={20} />
            <span className="text-[10px] font-medium font-heading">World</span>
+         </button>
+
+         <button 
+           onClick={() => setMobileTab('insights')}
+           className={`flex flex-col items-center gap-1 p-2 ${mobileTab === 'insights' ? 'text-amber-500' : 'text-stone-600'}`}
+         >
+           <Sparkles size={20} />
+           <span className="text-[10px] font-medium font-heading">Insights</span>
          </button>
 
          <button 

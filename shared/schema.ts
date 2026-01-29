@@ -21,6 +21,8 @@ export const gameSaves = pgTable("game_saves", {
   character: jsonb("character"),
   currentEvent: jsonb("current_event"),
   history: jsonb("history"),
+  config: jsonb("config"),
+  storyArcs: jsonb("story_arcs"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
