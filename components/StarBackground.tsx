@@ -78,8 +78,8 @@ export const StarBackground: React.FC = () => {
         const y = star.y * k + cy + targetY;
 
         if (x >= 0 && x <= width && y >= 0 && y <= height) {
-          const size = (1 - star.z / width) * 2.5;
-          const opacity = (1 - star.z / width);
+          const size = Math.max(0.1, (1 - star.z / width) * 2.5);
+          const opacity = Math.max(0, Math.min(1, 1 - star.z / width));
 
           ctx.beginPath();
           ctx.fillStyle = `rgba(180, 200, 255, ${opacity})`;
