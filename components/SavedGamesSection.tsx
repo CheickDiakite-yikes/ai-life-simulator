@@ -138,7 +138,7 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
             )}
             
             <div className="p-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-stone-800 border-2 border-stone-600 flex items-center justify-center text-base font-heading text-stone-300 shadow-inner flex-shrink-0">
                   {character.name?.charAt(0) || '?'}
                 </div>
@@ -160,9 +160,9 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
                     {character.location && (
                       <>
                         <span className="text-stone-700">•</span>
-                        <span className="flex items-center gap-1 truncate">
+                        <span className="flex items-center gap-1">
                           <MapPin size={9} className="flex-shrink-0" />
-                          <span className="truncate">{character.location.split(',')[0]}</span>
+                          <span className="truncate max-w-[100px]">{character.location.split(',')[0]}</span>
                         </span>
                       </>
                     )}
@@ -173,41 +173,41 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
                     </span>
                   </div>
                 </div>
+              </div>
+              
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-stone-700/50">
+                <button
+                  onClick={() => onLoadGame(currentSave.id)}
+                  disabled={isLoading}
+                  className={`
+                    flex-1 px-4 py-2.5 rounded-xl text-xs font-heading tracking-wider uppercase transition-all duration-200
+                    disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg
+                    ${isRecent 
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white border border-amber-500/30 shadow-amber-900/40' 
+                      : 'bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-stone-200 border border-stone-600/50 shadow-stone-900/40'
+                    }
+                  `}
+                >
+                  {isLoadingThis ? (
+                    <>
+                      <Loader2 size={12} className="animate-spin" />
+                      <span>Loading</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={10} fill="currentColor" />
+                      {isRecent ? 'Resume' : 'Continue'}
+                    </>
+                  )}
+                </button>
                 
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => onLoadGame(currentSave.id)}
-                    disabled={isLoading}
-                    className={`
-                      px-4 py-2 rounded-xl text-xs font-heading tracking-wider uppercase transition-all duration-200
-                      disabled:opacity-50 flex items-center gap-2 shadow-lg
-                      ${isRecent 
-                        ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white border border-amber-500/30 shadow-amber-900/40' 
-                        : 'bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-stone-200 border border-stone-600/50 shadow-stone-900/40'
-                      }
-                    `}
-                  >
-                    {isLoadingThis ? (
-                      <>
-                        <Loader2 size={12} className="animate-spin" />
-                        <span>Loading</span>
-                      </>
-                    ) : (
-                      <>
-                        <Play size={10} fill="currentColor" />
-                        {isRecent ? 'Resume' : 'Continue'}
-                      </>
-                    )}
-                  </button>
-                  
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onDeleteGame(currentSave.id); }}
-                    className="p-2 text-stone-500 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-all duration-200 border border-transparent hover:border-red-800/30"
-                    title="Delete save"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDeleteGame(currentSave.id); }}
+                  className="p-2.5 text-stone-500 hover:text-red-400 hover:bg-red-900/30 rounded-xl transition-all duration-200 border border-stone-700/50 hover:border-red-800/30"
+                  title="Delete save"
+                >
+                  <Trash2 size={16} />
+                </button>
               </div>
             </div>
           </div>
