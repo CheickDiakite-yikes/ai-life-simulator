@@ -577,7 +577,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         </div>
 
         {/* Carousel Container */}
-        <div className="flex-1 w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-10 px-4 min-h-0 pt-2 md:pt-0">
+        <div className="w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-20 px-4 pt-2 md:pt-0 md:flex-1 md:min-h-0">
           
           {/* Mobile Navigation Arrows */}
           <button 
@@ -622,9 +622,9 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                    {/* Card Body - Marble Tablet Look */}
                    <div className={`
                       w-full marble-texture border-4 ${isActive ? 'border-[#b45309]' : 'border-stone-600/30'} 
-                      rounded-t-[40px] rounded-b-xl p-5 md:p-8 flex flex-col items-center text-center shadow-2xl
+                      rounded-t-[40px] rounded-b-xl p-4 md:p-8 flex flex-col items-center text-center shadow-2xl
                       ${isActive ? 'shadow-[0_0_50px_rgba(0,0,0,0.7)]' : ''}
-                      min-h-[380px] sm:min-h-[420px] md:h-[500px] justify-between relative overflow-hidden bg-[#e7e5e4]
+                      h-[340px] sm:h-[380px] md:h-[500px] justify-between relative overflow-hidden bg-[#e7e5e4]
                    `}>
                       {/* Inner Border Decoration */}
                       <div className="absolute inset-2 border border-stone-400/30 rounded-t-[32px] rounded-b-lg pointer-events-none"></div>
