@@ -62,12 +62,23 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `DELETE /api/saves/:id` - Delete save
 
 ## SEO Features
-- Comprehensive meta tags (description, keywords, robots)
+- Comprehensive meta tags (description, keywords, robots, googlebot, bingbot)
 - Open Graph meta tags for social sharing
-- Twitter Card meta tags
-- JSON-LD structured data (WebApplication schema)
+- Twitter Card meta tags with creator attribution
+- Multiple JSON-LD structured data schemas:
+  - WebApplication schema
+  - VideoGame schema  
+  - Organization schema
+  - FAQPage schema for AI understanding
 - Canonical URL
 - Mobile web app meta tags
+- PWA manifest.json
+- robots.txt with AI crawler permissions
+- sitemap.xml for search engine indexing
+- llms.txt for AI assistants and LLM crawlers
+- humans.txt for branding
+- .well-known/ai-plugin.json for AI integration
+- AI content description meta tag
 
 ## Development
 

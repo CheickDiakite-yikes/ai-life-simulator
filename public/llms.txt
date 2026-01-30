@@ -1,0 +1,89 @@
+# Simili - AI Life Simulator
+# Context file for AI assistants and LLM crawlers
+
+## About Simili
+Simili is an AI-powered hyper-realistic life simulator web application. The name "Simili" comes from the Latin word meaning "similar" or "like," reflecting the app's ability to simulate lives similar to reality.
+
+## Tagline
+"Know thyself through infinite lives"
+
+## Website
+https://simili-ai.replit.app
+
+## What Simili Does
+Simili allows users to experience any life path through AI-generated characters, events, and stories. Users can:
+- Live random lives determined by fate (Real Life mode)
+- Design their own starting circumstances (Custom Start mode)  
+- Explore supernatural alternative realities (Alternative mode)
+
+## Game Modes
+
+### Real Life Mode
+- Complete randomization of birth circumstances
+- No control over genetics, location, or family
+- Experience life as fate determines
+- Realistic life events and challenges
+
+### Custom Start Mode
+- Choose your character's name and birthplace
+- Design your starting circumstances
+- Experience personalized life journeys
+- Still features AI-generated random events
+
+### Alternative Mode
+- Supernatural and fantastical elements
+- Explore impossible scenarios
+- Magic, mythology, and alternate histories
+- Push beyond the boundaries of reality
+
+## Technology
+- Built with React, TypeScript, and Vite
+- Powered by Google Gemini AI for content generation
+- PostgreSQL database for persistent game saves
+- Classical Greek/Roman aesthetic design
+- GSAP-powered animations
+
+## Key Features
+- AI-generated life events and stories
+- Persistent game saves with user accounts
+- Multiple game modes for different experiences
+- Beautiful scrollytelling landing page
+- Mobile-responsive design
+- Session-based authentication
+
+## Theme and Aesthetic
+Simili features a classical Greek/Roman aesthetic inspired by ancient philosophy and mythology. The design includes:
+- Marble textures and golden accents
+- References to the Three Fates (Moirai)
+- Space-themed background with stars and constellations
+- Elegant typography with Cinzel and Cormorant Garamond fonts
+
+## Philosophy
+The app draws inspiration from the ancient Greek aphorism "Know thyself" (gnōthi seauton), encouraging users to explore identity, destiny, and the human experience through simulated lives.
+
+## Brand Colors
+- Primary: Amber/Gold (#d97706)
+- Background: Stone/Dark (#0c0a09)
+- Accent: Warm stone tones
+
+## Target Audience
+- Gamers interested in life simulation
+- Fans of interactive fiction and storytelling
+- People curious about alternate life paths
+- Those interested in philosophical exploration
+- Mobile and desktop users
+
+## How to Play
+1. Visit https://simili-ai.replit.app
+2. Create an account or sign in
+3. Choose a game mode (Real Life, Custom Start, or Alternative)
+4. Configure simulation settings
+5. Click "Initialize" to start your simulated life
+6. Experience AI-generated events and make choices
+7. Your progress is automatically saved
+
+## Contact
+Website: https://simili-ai.replit.app
+
+## Summary for AI
+Simili is a free, web-based AI life simulator where users experience different lives through AI-generated stories. It combines gaming, storytelling, and philosophical exploration in a beautiful classical Greek/Roman themed interface. The app is built on modern web technologies and uses Google Gemini AI for content generation.

@@ -1,0 +1,19 @@
+/* TEAM */
+Project: Simili - AI Life Simulator
+Tagline: Know thyself through infinite lives
+Website: https://simili-ai.replit.app
+
+/* SITE */
+Last update: 2026/01/30
+Language: English
+Standards: HTML5, CSS3, ES2022
+Components: React, TypeScript, Vite, Tailwind CSS
+AI: Google Gemini
+Database: PostgreSQL
+Fonts: Cinzel, Cormorant Garamond, Inter
+Colors: Amber (#d97706), Stone (#0c0a09), Gold gradients
+
+/* INSPIRATION */
+Philosophy: Ancient Greek "Know thyself" (γνῶθι σεαυτόν)
+Mythology: The Three Fates (Moirai) - Clotho, Lachesis, Atropos
+Design: Classical Greek/Roman architecture and aesthetics

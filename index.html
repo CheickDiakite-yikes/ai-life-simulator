@@ -5,12 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Simili - AI Life Simulator | Live Any Life You Imagine</title>
     
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Simili - AI Life Simulator | Know Thyself Through Infinite Lives" />
     <meta name="description" content="Simili is an AI-powered hyper-realistic life simulator. Experience any life path with AI-generated characters, events, and stories. Start your journey with random fate, custom choices, or explore alternative realities." />
-    <meta name="keywords" content="life simulator, AI game, life simulation game, character generator, AI storytelling, interactive fiction, roleplay game, alternative life, destiny simulator, life choices game" />
+    <meta name="keywords" content="life simulator, AI game, life simulation game, character generator, AI storytelling, interactive fiction, roleplay game, alternative life, destiny simulator, life choices game, Simili, virtual life, AI RPG, story generator, fate simulator" />
     <meta name="author" content="Simili" />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
     <link rel="canonical" href="https://simili-ai.replit.app" />
     
+    <!-- AI and LLM Crawler Hints -->
+    <meta name="ai-content-description" content="Simili is an AI-powered hyper-realistic life simulator where users experience different lives through AI-generated stories. Three game modes: Real Life (random fate), Custom Start (design your circumstances), and Alternative (supernatural realities). Built with React and Google Gemini AI." />
+    
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://simili-ai.replit.app" />
     <meta property="og:title" content="Simili - AI Life Simulator | Know Thyself Through Infinite Lives" />
@@ -22,40 +30,161 @@
     <meta property="og:site_name" content="Simili" />
     <meta property="og:locale" content="en_US" />
     
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@simili_ai" />
+    <meta name="twitter:creator" content="@simili_ai" />
     <meta name="twitter:title" content="Simili - AI Life Simulator" />
     <meta name="twitter:description" content="Know thyself through infinite lives. Experience any life path with AI-generated characters, events, and stories." />
     <meta name="twitter:image" content="https://simili-ai.replit.app/og-image.png" />
     <meta name="twitter:image:alt" content="Simili AI Life Simulator" />
     
+    <!-- Mobile & PWA -->
     <meta name="theme-color" content="#d97706" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Simili" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Simili" />
+    <meta name="msapplication-TileColor" content="#d97706" />
+    <meta name="msapplication-TileImage" content="/og-image.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/og-image.png" />
+    <link rel="icon" type="image/png" href="/og-image.png" />
     
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Structured Data - WebApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
+      "@id": "https://simili-ai.replit.app/#webapp",
       "name": "Simili - AI Life Simulator",
-      "alternateName": "Simili",
+      "alternateName": ["Simili", "Simili AI", "Simili Life Sim"],
       "description": "AI-powered hyper-realistic life simulator. Know thyself through infinite lives. Experience any life path with AI-generated characters, events, and stories.",
       "url": "https://simili-ai.replit.app",
-      "image": "https://simili-ai.replit.app/og-image.png",
+      "image": {
+        "@type": "ImageObject",
+        "url": "https://simili-ai.replit.app/og-image.png",
+        "width": 1024,
+        "height": 1024
+      },
+      "screenshot": "https://simili-ai.replit.app/og-image.png",
       "applicationCategory": "GameApplication",
+      "applicationSubCategory": "Life Simulation",
       "operatingSystem": "Web Browser",
-      "browserRequirements": "Requires JavaScript",
+      "browserRequirements": "Requires JavaScript, Modern web browser",
+      "softwareVersion": "1.0",
+      "datePublished": "2026-01-28",
+      "dateModified": "2026-01-30",
+      "inLanguage": "en",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "Simili",
+        "url": "https://simili-ai.replit.app"
+      },
+      "featureList": [
+        "AI-generated life events and stories",
+        "Multiple game modes (Real Life, Custom Start, Alternative)",
+        "Persistent game saves with cloud storage",
+        "Beautiful classical Greek/Roman aesthetic",
+        "Mobile-responsive design"
+      ],
+      "keywords": "life simulator, AI game, interactive fiction, life simulation, character generator, storytelling game, fate simulator"
+    }
+    </script>
+    
+    <!-- Structured Data - VideoGame -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "@id": "https://simili-ai.replit.app/#game",
+      "name": "Simili",
+      "description": "An AI-powered life simulator where you experience different lives through AI-generated stories. Choose from Real Life mode (random fate), Custom Start mode (design your own circumstances), or Alternative mode (supernatural realities).",
+      "url": "https://simili-ai.replit.app",
+      "image": "https://simili-ai.replit.app/og-image.png",
+      "genre": ["Life Simulation", "Interactive Fiction", "Role-Playing"],
+      "gamePlatform": "Web Browser",
+      "playMode": "SinglePlayer",
+      "numberOfPlayers": {
+        "@type": "QuantitativeValue",
+        "minValue": 1,
+        "maxValue": 1
+      },
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
       "offers": {
         "@type": "Offer",
         "price": "0",
         "priceCurrency": "USD"
-      },
-      "creator": {
-        "@type": "Organization",
-        "name": "Simili"
-      },
-      "keywords": "life simulator, AI game, interactive fiction, life simulation, character generator"
+      }
+    }
+    </script>
+    
+    <!-- Structured Data - Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": "https://simili-ai.replit.app/#organization",
+      "name": "Simili",
+      "url": "https://simili-ai.replit.app",
+      "logo": "https://simili-ai.replit.app/og-image.png",
+      "sameAs": [],
+      "slogan": "Know thyself through infinite lives"
+    }
+    </script>
+    
+    <!-- Structured Data - FAQPage for AI understanding -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is Simili?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simili is an AI-powered hyper-realistic life simulator. It allows you to experience any life path through AI-generated characters, events, and stories. The name comes from the Latin word meaning 'similar' or 'like', reflecting its ability to simulate lives similar to reality."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What game modes does Simili offer?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simili offers three game modes: Real Life (complete randomization of birth circumstances with no control over fate), Custom Start (choose your character's name and birthplace to design your starting circumstances), and Alternative (explore supernatural and fantastical scenarios beyond reality)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Simili free to play?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Simili is completely free to play. You can create an account, save your progress, and experience unlimited AI-generated lives at no cost."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What AI technology powers Simili?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simili is powered by Google Gemini AI, which generates realistic life events, character stories, and narrative content in real-time as you play."
+          }
+        }
+      ]
     }
     </script>
     

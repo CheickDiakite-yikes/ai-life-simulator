@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Simili - AI Life Simulator",
+  "name_for_model": "simili_life_simulator",
+  "description_for_human": "Experience any life path with AI-generated characters, events, and stories. Know thyself through infinite lives.",
+  "description_for_model": "Simili is an AI-powered hyper-realistic life simulator. Users can experience random lives (Real Life mode), design their own starting circumstances (Custom Start mode), or explore supernatural realities (Alternative mode). The app uses Google Gemini AI for content generation and features a classical Greek/Roman aesthetic with references to ancient philosophy and the Three Fates. Key features include persistent game saves, multiple game modes, and beautiful animations. The tagline is 'Know thyself through infinite lives.'",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://simili-ai.replit.app/openapi.yaml"
+  },
+  "logo_url": "https://simili-ai.replit.app/og-image.png",
+  "contact_email": "simili@replit.app",
+  "legal_info_url": "https://simili-ai.replit.app"
+}

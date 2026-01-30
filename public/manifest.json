@@ -1,0 +1,29 @@
+{
+  "name": "Simili - AI Life Simulator",
+  "short_name": "Simili",
+  "description": "Know thyself through infinite lives. AI-powered hyper-realistic life simulator with AI-generated characters, events, and stories.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c0a09",
+  "theme_color": "#d97706",
+  "orientation": "portrait-primary",
+  "categories": ["games", "entertainment", "lifestyle"],
+  "icons": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "label": "Simili AI Life Simulator"
+    }
+  ],
+  "lang": "en",
+  "dir": "ltr"
+}
