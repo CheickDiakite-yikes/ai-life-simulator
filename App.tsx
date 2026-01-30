@@ -624,7 +624,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                       w-full marble-texture border-4 ${isActive ? 'border-[#b45309]' : 'border-stone-600/30'} 
                       rounded-t-[40px] rounded-b-xl p-4 md:p-8 flex flex-col items-center text-center shadow-2xl
                       ${isActive ? 'shadow-[0_0_50px_rgba(0,0,0,0.7)]' : ''}
-                      h-[340px] sm:h-[380px] md:h-[500px] justify-between relative overflow-hidden bg-[#e7e5e4]
+                      h-[380px] sm:h-[420px] md:h-[500px] justify-between relative overflow-visible bg-[#e7e5e4]
                    `}>
                       {/* Inner Border Decoration */}
                       <div className="absolute inset-2 border border-stone-400/30 rounded-t-[32px] rounded-b-lg pointer-events-none"></div>
