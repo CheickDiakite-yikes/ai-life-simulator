@@ -76,7 +76,7 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
   const needsScrolling = savedGames.length > 2;
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 mb-6 z-10">
+    <div className="w-full max-w-4xl mx-auto px-4 mb-6 mt-4 z-10 flex-shrink-0">
       <div className="flex items-center justify-center gap-3 mb-4">
         <div className="h-px w-8 bg-amber-600/30"></div>
         <h2 className="text-sm font-heading text-stone-400 uppercase tracking-widest">

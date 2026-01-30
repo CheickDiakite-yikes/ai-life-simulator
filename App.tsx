@@ -577,7 +577,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         </div>
 
         {/* Carousel Container */}
-        <div className="flex-1 w-full max-w-6xl mx-auto flex items-center justify-center relative z-10 px-4 min-h-0">
+        <div className="flex-1 w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-10 px-4 min-h-0 pt-2 md:pt-0">
           
           {/* Mobile Navigation Arrows */}
           <button 
@@ -622,23 +622,24 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                    {/* Card Body - Marble Tablet Look */}
                    <div className={`
                       w-full marble-texture border-4 ${isActive ? 'border-[#b45309]' : 'border-stone-600/30'} 
-                      rounded-t-[40px] rounded-b-xl p-6 md:p-8 flex flex-col items-center text-center shadow-2xl
+                      rounded-t-[40px] rounded-b-xl p-5 md:p-8 flex flex-col items-center text-center shadow-2xl
                       ${isActive ? 'shadow-[0_0_50px_rgba(0,0,0,0.7)]' : ''}
-                      min-h-[480px] md:h-[500px] justify-between relative overflow-hidden bg-[#e7e5e4]
+                      min-h-[380px] sm:min-h-[420px] md:h-[500px] justify-between relative overflow-hidden bg-[#e7e5e4]
                    `}>
                       {/* Inner Border Decoration */}
                       <div className="absolute inset-2 border border-stone-400/30 rounded-t-[32px] rounded-b-lg pointer-events-none"></div>
                       
                       {/* Top Section */}
                       <div className="flex flex-col items-center relative z-10 w-full">
-                        <div className="mb-4 md:mb-6 p-4">
-                          <mode.icon size={56} className={`${mode.iconColor} drop-shadow-md`} strokeWidth={1.5} />
+                        <div className="mb-2 md:mb-6 p-2 md:p-4">
+                          <mode.icon size={40} className={`${mode.iconColor} drop-shadow-md md:hidden`} strokeWidth={1.5} />
+                          <mode.icon size={56} className={`${mode.iconColor} drop-shadow-md hidden md:block`} strokeWidth={1.5} />
                         </div>
-                        <h2 className="text-2xl font-bold text-stone-800 mb-2 font-heading tracking-wider">{mode.title}</h2>
-                        <span className="text-xs font-bold uppercase tracking-[0.2em] mb-4 text-stone-500 border-b border-stone-300 pb-1">
+                        <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-1 md:mb-2 font-heading tracking-wider">{mode.title}</h2>
+                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-2 md:mb-4 text-stone-500 border-b border-stone-300 pb-1">
                           {mode.subtitle}
                         </span>
-                        <p className="text-sm text-stone-600 leading-relaxed mb-6 font-serif italic px-2">
+                        <p className="text-xs md:text-sm text-stone-600 leading-relaxed mb-3 md:mb-6 font-serif italic px-2">
                           {mode.desc}
                         </p>
                       </div>
