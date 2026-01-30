@@ -23,6 +23,7 @@ interface DashboardProps {
   onConfigChange: (config: SimulationConfig) => void;
   onOpenEthics: () => void;
   onReturnToSelection?: () => void;
+  error?: string | null;
 }
 
 // Sub-component for individual Event Cards to manage their own media state
@@ -271,7 +272,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   storyArcs,
   onConfigChange,
   onOpenEthics,
-  onReturnToSelection
+  onReturnToSelection,
+  error
 }) => {
   const [customInput, setCustomInput] = useState('');
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
@@ -472,7 +474,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* --- Main Content Grid --- */}
       <div className="flex-1 grid grid-cols-1 md:grid-cols-12 min-h-0 relative">
-        
+
         {/* --- Left Sidebar: Profile & Vitals --- */}
         <aside className={`
           md:block md:col-span-3 border-r border-stone-800 bg-[#1c1917] p-6 overflow-y-auto custom-scrollbar
@@ -636,6 +638,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
           md:flex md:col-span-6 flex-col bg-[#0c0a09] relative h-full min-h-0
           ${mobileTab === 'feed' ? 'flex z-10 absolute inset-0 md:static' : 'hidden'}
         `}>
+          {error && (
+            <div className="mx-3 sm:mx-4 md:mx-8 mt-4 mb-2 bg-red-900/40 border border-red-600/40 text-red-200 text-xs font-serif px-3 py-2 rounded-sm">
+              {error}
+            </div>
+          )}
           
           {/* Feed */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-8 space-y-6 sm:space-y-8 scroll-smooth custom-scrollbar pb-32 md:pb-8" ref={scrollRef}>

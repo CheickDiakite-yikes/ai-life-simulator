@@ -15,13 +15,31 @@ import { buildResearchAnalysis, detectMilestones } from "./researchAnalysis";
 import { inferRegionFromLocation } from "./regionUtils";
 import { applyAlternativeMechanics, ensureAlternativeProfile } from "./altMechanics";
 
+const DEFAULT_TIMEOUT_MS = 45000;
+const SHORT_TIMEOUT_MS = 12000;
+
+const withTimeout = async <T>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${Math.round(ms / 1000)}s`));
+    }, ms);
+  });
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 // Helper to get client with current key
 const getClient = () => {
   const apiKey = getRuntimeApiKey();
   if (!apiKey) {
     logError("API Key not found in environment or local storage");
+    throw new Error("Missing Gemini API key.");
   }
-  return new GoogleGenAI({ apiKey: apiKey || '' });
+  return new GoogleGenAI({ apiKey });
 };
 
 const FALLBACK_CONFIG: SimulationConfig = {
@@ -297,7 +315,7 @@ export const generateInitialCharacter = async (
 
     let response;
     try {
-      response = await ai.models.generateContent({
+      response = await withTimeout(ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: 'Generate the character JSON.',
         config: {
@@ -305,7 +323,7 @@ export const generateInitialCharacter = async (
           responseMimeType: 'application/json',
           responseSchema: schema,
         }
-      });
+      }), DEFAULT_TIMEOUT_MS, 'Generate initial character');
     } catch (error) {
       logError('Character generation request failed', error);
       if (attempt === maxAttempts) throw error;
@@ -417,7 +435,8 @@ export const advanceLife = async (
     date: expectedNextDate || currentDate,
     location: character.location || '',
     timeStep,
-    region: region || undefined
+    region: region || undefined,
+    altGenre: isAlternative ? altGenre : undefined
   });
   const hasRealWorldContext = !!realWorldContext.trim();
   if (!expectedNextDate) {
@@ -690,15 +709,15 @@ export const advanceLife = async (
     altGenre
   });
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview', 
+  const response = await withTimeout(ai.models.generateContent({
+    model: 'gemini-3-pro-preview',
     contents: prompt,
     config: {
       thinkingConfig: { thinkingBudget: 16000 },
       responseMimeType: 'application/json',
       responseSchema: schema,
     }
-  });
+  }), DEFAULT_TIMEOUT_MS, 'Advance life');
 
   let data;
   try {
@@ -927,15 +946,21 @@ const macroEventToNews = (event: MacroEvent): NewsItem => {
 // --- Search Grounding for Real World Events ---
 
 export const getRealWorldContext = async (): Promise<string> => {
-  const ai = getClient();
+  let ai: GoogleGenAI;
   try {
-    const response = await ai.models.generateContent({
+    ai = getClient();
+  } catch (error) {
+    logError("Search failed", error);
+    return "";
+  }
+  try {
+    const response = await withTimeout(ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: "What are the most impactful global news headlines right now regarding politics, health, technology, and environment? Summarize in 3 sentences.",
       config: {
         tools: [{ googleSearch: {} }]
       }
-    });
+    }), SHORT_TIMEOUT_MS, 'Fetch real-world context');
     const text = response.text || "No major news found.";
     logDebug('Fetched real-world context', { length: text.length });
     return text;

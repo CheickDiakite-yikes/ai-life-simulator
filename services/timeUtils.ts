@@ -106,3 +106,13 @@ export const isAfterOrEqual = (a: string, b: string): boolean => {
   if (!dateA || !dateB) return false;
   return dateA.getTime() >= dateB.getTime();
 };
+
+export const isOnOrBeforeToday = (dateStr: string, todayOverride?: string): boolean => {
+  const date = parseISODate(dateStr);
+  if (!date) return false;
+  const today = todayOverride ? parseISODate(todayOverride) : null;
+  const now = new Date();
+  const todayDate = today || new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  if (!todayDate) return false;
+  return date.getTime() <= todayDate.getTime();
+};

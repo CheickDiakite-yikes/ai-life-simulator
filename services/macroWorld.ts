@@ -1,4 +1,4 @@
-import { MacroEvent, WorldRegion } from '../types';
+import { AltGenre, MacroEvent, WorldRegion } from '../types';
 import { extractCountry } from './simulationMemory';
 
 const MACRO_EVENT_POOL: Array<Omit<MacroEvent, 'date'>> = [
@@ -10,6 +10,29 @@ const MACRO_EVENT_POOL: Array<Omit<MacroEvent, 'date'>> = [
   { headline: 'Migration policy shifts', category: 'POLITICS', scope: 'regional', impactSummary: 'Cross-border movement becomes harder or easier.' },
   { headline: 'Conflict escalates in neighboring region', category: 'CONFLICT', scope: 'regional', impactSummary: 'Displacement and uncertainty increase.' }
 ];
+
+const ALT_EVENT_POOLS: Record<AltGenre, Array<Omit<MacroEvent, 'date'>>> = {
+  fantasy: [
+    { headline: 'Leyline surge disrupts city wards', category: 'SOCIAL', scope: 'regional', impactSummary: 'Arcane services falter; local healers are overrun.' },
+    { headline: 'Council restricts public spellcraft', category: 'POLITICS', scope: 'regional', impactSummary: 'Licensing tightens; underground mages gain influence.' },
+    { headline: 'Crop blight traced to cursed groundwater', category: 'CLIMATE', scope: 'regional', impactSummary: 'Food costs rise; rural families relocate.' }
+  ],
+  scifi: [
+    { headline: 'Orbital grid outage hits megacities', category: 'TECH', scope: 'regional', impactSummary: 'Transit delays and job disruptions spread.' },
+    { headline: 'Synthetic labor law revised', category: 'POLITICS', scope: 'global', impactSummary: 'Automation accelerates; wage pressure increases.' },
+    { headline: 'Radiation anomaly detected in outer belt', category: 'HEALTH', scope: 'global', impactSummary: 'Public health advisories issued for exposed workers.' }
+  ],
+  superhero: [
+    { headline: 'Vigilante task force expands patrols', category: 'POLITICS', scope: 'regional', impactSummary: 'Public safety improves but civil liberties debates intensify.' },
+    { headline: 'Collateral relief fund launched', category: 'ECONOMY', scope: 'regional', impactSummary: 'Families recover after recent superhuman clashes.' },
+    { headline: 'Rival factions clash over jurisdiction', category: 'CONFLICT', scope: 'regional', impactSummary: 'Neighborhood tension rises; community organizers intervene.' }
+  ],
+  horror: [
+    { headline: 'Unexplained disappearances continue', category: 'SOCIAL', scope: 'regional', impactSummary: 'Curfews tighten and mistrust spreads.' },
+    { headline: 'Public health alert: mass insomnia', category: 'HEALTH', scope: 'regional', impactSummary: 'Hospitals report fatigue spikes and anxiety disorders.' },
+    { headline: 'Local shrine vandalized after omens', category: 'CONFLICT', scope: 'local', impactSummary: 'Tensions flare between believers and skeptics.' }
+  ]
+};
 
 const REGION_HINTS: Record<WorldRegion, string[]> = {
   Africa: ['Sub-Saharan Africa', 'North Africa'],
@@ -38,8 +61,12 @@ const seededRandom = (seed: number): () => number => {
   };
 };
 
-const pickFromPool = (rng: () => number, count: number): Array<Omit<MacroEvent, 'date'>> => {
-  const copy = [...MACRO_EVENT_POOL];
+const pickFromPool = (
+  rng: () => number,
+  count: number,
+  pool: Array<Omit<MacroEvent, 'date'>> = MACRO_EVENT_POOL
+): Array<Omit<MacroEvent, 'date'>> => {
+  const copy = [...pool];
   const picks: Array<Omit<MacroEvent, 'date'>> = [];
   for (let i = 0; i < count && copy.length > 0; i += 1) {
     const idx = Math.floor(rng() * copy.length);
@@ -52,14 +79,16 @@ export const getMacroEvents = (params: {
   date: string;
   location: string;
   region?: WorldRegion;
+  altGenre?: AltGenre;
   timeStep: string;
 }): MacroEvent[] => {
-  const { date, location, region, timeStep } = params;
+  const { date, location, region, timeStep, altGenre } = params;
   const country = extractCountry(location);
   const seed = hashString(`${date}-${location}-${timeStep}`);
   const rng = seededRandom(seed);
   const count = timeStep === 'Year' ? 2 : 1;
-  const picks = pickFromPool(rng, count).map((event) => ({
+  const pool = altGenre ? ALT_EVENT_POOLS[altGenre] || MACRO_EVENT_POOL : MACRO_EVENT_POOL;
+  const picks = pickFromPool(rng, count, pool).map((event) => ({
     ...event,
     date
   }));

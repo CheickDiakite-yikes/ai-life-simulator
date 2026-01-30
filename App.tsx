@@ -12,7 +12,7 @@ import { EthicsModal } from './components/EthicsModal';
 import { MultiLifeComparison } from './components/MultiLifeComparison';
 import { Play, Shuffle, UserPlus, Wand, ChevronLeft, ChevronRight, MapPin, User, Scroll, LogOut, Settings } from 'lucide-react';
 import { addRecentStart, getRecentStarts } from './services/simulationMemory';
-import { randomDateInYear } from './services/timeUtils';
+import { addTimeStep, isOnOrBeforeToday, randomDateInYear } from './services/timeUtils';
 import { logDebug, logError, logWarn } from './services/logger';
 import { saveGame, loadSavedGames, loadGame, deleteSavedGame, SavedGame } from './services/saveGameService';
 import { getDefaultBirthConfig } from './services/birthConfig';
@@ -344,11 +344,14 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
       logWarn('No current event available to advance', { choiceId, choiceText });
       return;
     }
+    setError(null);
     setGameState(prev => ({ ...prev, isLoading: true }));
     try {
       let context = "";
-      if (gameState.config.researchMode || Math.random() > 0.6) {
-         context = await getRealWorldContext();
+      const nextDate = addTimeStep(gameState.currentDate, gameState.timeStep) || gameState.currentDate;
+      const withinRealWorldTimeline = isOnOrBeforeToday(nextDate);
+      if (withinRealWorldTimeline) {
+        context = await getRealWorldContext();
       }
       logDebug('Advancing with choice', { choiceId, timeStep: gameState.timeStep });
       const { character, event } = await advanceLife(
@@ -802,6 +805,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         storyArcs={gameState.storyArcs}
         onConfigChange={handleConfigChange}
         onOpenEthics={() => setIsEthicsOpen(true)}
+        error={error}
       />
       <ChatInterface 
         isOpen={isChatOpen} 
