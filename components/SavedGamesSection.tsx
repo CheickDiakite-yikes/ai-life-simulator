@@ -174,27 +174,27 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => onLoadGame(currentSave.id)}
                     disabled={isLoading}
                     className={`
-                      px-3 py-1.5 rounded-lg text-xs font-heading tracking-wide transition-all 
-                      disabled:opacity-50 flex items-center gap-1.5
+                      px-4 py-2 rounded-xl text-xs font-heading tracking-wider uppercase transition-all duration-200
+                      disabled:opacity-50 flex items-center gap-2 shadow-lg
                       ${isRecent 
-                        ? 'bg-amber-700/80 hover:bg-amber-600 border border-amber-600/50 text-amber-100' 
-                        : 'bg-stone-800 hover:bg-amber-900/50 border border-stone-700 hover:border-amber-700/50 text-stone-300 hover:text-amber-200'
+                        ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white border border-amber-500/30 shadow-amber-900/40' 
+                        : 'bg-gradient-to-r from-stone-700 to-stone-800 hover:from-stone-600 hover:to-stone-700 text-stone-200 border border-stone-600/50 shadow-stone-900/40'
                       }
                     `}
                   >
                     {isLoadingThis ? (
                       <>
-                        <Loader2 size={10} className="animate-spin" />
+                        <Loader2 size={12} className="animate-spin" />
                         <span>Loading</span>
                       </>
                     ) : (
                       <>
-                        <Play size={9} fill="currentColor" />
+                        <Play size={10} fill="currentColor" />
                         {isRecent ? 'Resume' : 'Continue'}
                       </>
                     )}
@@ -202,7 +202,7 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
                   
                   <button
                     onClick={(e) => { e.stopPropagation(); onDeleteGame(currentSave.id); }}
-                    className="p-1.5 text-stone-600 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors"
+                    className="p-2 text-stone-500 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-all duration-200 border border-transparent hover:border-red-800/30"
                     title="Delete save"
                   >
                     <Trash2 size={14} />
