@@ -15,8 +15,8 @@ import { buildResearchAnalysis, detectMilestones } from "./researchAnalysis";
 import { inferRegionFromLocation } from "./regionUtils";
 import { applyAlternativeMechanics, ensureAlternativeProfile } from "./altMechanics";
 
-const DEFAULT_TIMEOUT_MS = 45000;
-const SHORT_TIMEOUT_MS = 12000;
+const DEFAULT_TIMEOUT_MS = 90000; // 90 seconds for complex AI responses
+const SHORT_TIMEOUT_MS = 20000;  // 20 seconds for quick lookups
 
 const withTimeout = async <T>(promise: Promise<T>, ms: number, label: string): Promise<T> => {
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -36,9 +36,10 @@ const withTimeout = async <T>(promise: Promise<T>, ms: number, label: string): P
 const getClient = () => {
   const apiKey = getRuntimeApiKey();
   if (!apiKey) {
-    logError("API Key not found in environment or local storage");
-    throw new Error("Missing Gemini API key.");
+    logError("API Key not found - check GEMINI_API_KEY secret");
+    throw new Error("Missing Gemini API key. Please check your API key configuration.");
   }
+  logDebug("Gemini client initialized", { keyLength: apiKey.length });
   return new GoogleGenAI({ apiKey });
 };
 
