@@ -328,7 +328,18 @@ app.post("/api/messages", async (req, res) => {
 });
 
 const distPath = path.resolve(__dirname, "../dist");
-app.use(express.static(distPath));
+// Serve static files with no-cache to prevent stale bundles
+app.use(express.static(distPath, {
+  etag: false,
+  setHeaders: (res, filePath) => {
+    // Force no caching for JS/CSS bundles
+    if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
 
 app.use((req, res, next) => {
   if (req.method === "GET" && !req.path.startsWith("/api")) {
