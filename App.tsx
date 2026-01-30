@@ -577,23 +577,23 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         </div>
 
         {/* Carousel Container */}
-        <div className="w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-20 px-4 pt-2 md:pt-0 md:flex-1 md:min-h-0">
+        <div className="w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-20 px-12 md:px-4 pt-2 md:pt-0 md:flex-1 md:min-h-0">
           
-          {/* Mobile Navigation Arrows */}
+          {/* Mobile Navigation Arrows - positioned outside the card area */}
           <button 
             onClick={prevMode}
-            className="md:hidden absolute left-0 z-30 p-3 bg-stone-900/80 backdrop-blur-md rounded-r-xl border-y border-r border-amber-700/30 text-amber-100 hover:bg-stone-800 transition-colors shadow-lg"
+            className="md:hidden absolute left-1 top-1/2 -translate-y-1/2 z-30 p-2 bg-stone-800/90 backdrop-blur-md rounded-full border border-amber-700/40 text-amber-400 hover:bg-stone-700 transition-colors shadow-lg"
             aria-label="Previous Mode"
           >
-            <ChevronLeft size={24} />
+            <ChevronLeft size={20} />
           </button>
           
           <button 
             onClick={nextMode}
-            className="md:hidden absolute right-0 z-30 p-3 bg-stone-900/80 backdrop-blur-md rounded-l-xl border-y border-l border-amber-700/30 text-amber-100 hover:bg-stone-800 transition-colors shadow-lg"
+            className="md:hidden absolute right-1 top-1/2 -translate-y-1/2 z-30 p-2 bg-stone-800/90 backdrop-blur-md rounded-full border border-amber-700/40 text-amber-400 hover:bg-stone-700 transition-colors shadow-lg"
             aria-label="Next Mode"
           >
-            <ChevronRight size={24} />
+            <ChevronRight size={20} />
           </button>
 
           {/* Cards Wrapper */}

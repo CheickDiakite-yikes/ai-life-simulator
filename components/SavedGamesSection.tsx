@@ -76,10 +76,10 @@ export const SavedGamesSection: React.FC<SavedGamesSectionProps> = ({
   const needsScrolling = savedGames.length > 2;
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 pb-4 pt-3 mt-2 z-30 flex-shrink-0 bg-gradient-to-t from-stone-900/95 via-stone-900/90 to-transparent">
-      <div className="flex items-center justify-center gap-3 mb-4">
-        <div className="h-px w-8 bg-amber-600/30"></div>
-        <h2 className="text-sm font-heading text-stone-400 uppercase tracking-widest">
+    <div className="w-full max-w-4xl mx-auto px-4 pb-4 pt-4 mt-4 z-30 flex-shrink-0 border-t border-amber-700/20">
+      <div className="flex items-center justify-center gap-3 mb-3">
+        <div className="h-px w-6 bg-amber-600/40"></div>
+        <h2 className="text-xs font-heading text-amber-500/80 uppercase tracking-widest">
           Continue Your Journey
         </h2>
         <div className="h-px w-8 bg-amber-600/30"></div>
