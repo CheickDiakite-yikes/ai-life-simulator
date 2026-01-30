@@ -426,7 +426,24 @@ export const advanceLife = async (
   realWorldContext: string = "",
   options?: { mode?: GameMode; altGenre?: AltGenre }
 ): Promise<{ character: Character; event: LifeEvent }> => {
-  const ai = getClient();
+  const startTime = Date.now();
+  console.log('[FORENSIC] advanceLife START', {
+    timestamp: new Date().toISOString(),
+    choiceMade,
+    currentDate,
+    timeStep,
+    characterAge: character.age,
+    characterName: character.name
+  });
+  
+  let ai;
+  try {
+    ai = getClient();
+    console.log('[FORENSIC] Gemini client obtained successfully');
+  } catch (clientError) {
+    console.error('[FORENSIC] Failed to get Gemini client:', clientError);
+    throw clientError;
+  }
   const expectedNextDate = addTimeStep(currentDate, timeStep);
   const realismIntensity = config?.realismIntensity || 'true';
   const region = inferRegionFromLocation(character.location || '');
@@ -710,20 +727,53 @@ export const advanceLife = async (
     altGenre
   });
 
-  const response = await withTimeout(ai.models.generateContent({
+  console.log('[FORENSIC] Making Gemini API call', {
+    timestamp: new Date().toISOString(),
     model: 'gemini-3-flash-preview',
-    contents: prompt,
-    config: {
-      thinkingConfig: { thinkingBudget: 4096 },
-      responseMimeType: 'application/json',
-      responseSchema: schema,
-    }
-  }), DEFAULT_TIMEOUT_MS, 'Advance life');
+    thinkingBudget: 4096,
+    timeoutMs: DEFAULT_TIMEOUT_MS,
+    promptLength: prompt.length
+  });
+  
+  const apiCallStart = Date.now();
+  let response;
+  try {
+    response = await withTimeout(ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        thinkingConfig: { thinkingBudget: 4096 },
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+      }
+    }), DEFAULT_TIMEOUT_MS, 'Advance life');
+    
+    console.log('[FORENSIC] Gemini API responded', {
+      timestamp: new Date().toISOString(),
+      durationMs: Date.now() - apiCallStart,
+      responseLength: response.text?.length || 0
+    });
+  } catch (apiError) {
+    console.error('[FORENSIC] Gemini API FAILED', {
+      timestamp: new Date().toISOString(),
+      durationMs: Date.now() - apiCallStart,
+      error: apiError instanceof Error ? apiError.message : String(apiError),
+      errorType: apiError instanceof Error ? apiError.name : typeof apiError
+    });
+    throw apiError;
+  }
 
   let data;
   try {
     data = JSON.parse(response.text || '{}');
+    console.log('[FORENSIC] JSON parsed successfully', {
+      hasUpdatedCharacter: !!data.updatedCharacter,
+      hasNewEvent: !!data.newEvent
+    });
   } catch (error) {
+    console.error('[FORENSIC] JSON parse FAILED', {
+      responseText: response.text?.substring(0, 200)
+    });
     logError('Failed to parse simulation JSON', safeStringify(response.text));
     throw new Error("Failed to parse simulation JSON: " + response.text);
   }
