@@ -711,10 +711,10 @@ export const advanceLife = async (
   });
 
   const response = await withTimeout(ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3-flash-preview',
     contents: prompt,
     config: {
-      thinkingConfig: { thinkingBudget: 16000 },
+      thinkingConfig: { thinkingBudget: 4096 },
       responseMimeType: 'application/json',
       responseSchema: schema,
     }
@@ -1088,7 +1088,7 @@ export const getChatResponse = async (
   const ai = getClient();
   const systemInstruction = `You are a helpful AI assistant inside the Simili life simulation. You know the game state and help the user understand mechanics or lore.\n\nCurrent Game State:\n${gameContext || 'No active game state provided.'}`;
   const chat = ai.chats.create({
-    model: 'gemini-3-pro-preview',
+    model: 'gemini-3-flash-preview',
     history: history,
     config: {
       systemInstruction
