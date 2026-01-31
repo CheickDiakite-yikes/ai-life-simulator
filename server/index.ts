@@ -336,23 +336,28 @@ app.get("/api/media/:type/:hash", async (req, res) => {
       return res.status(404).json({ error: "Media not found" });
     }
     
-    const ext = key.split('.').pop() || '';
-    const contentTypes: Record<string, string> = {
-      'png': 'image/png',
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'webp': 'image/webp',
-      'gif': 'image/gif',
-      'mp4': 'video/mp4',
-      'webm': 'video/webm',
-      'mp3': 'audio/mpeg',
-      'wav': 'audio/wav',
-    };
+    // Detect content type from magic bytes for images
+    let contentType = 'application/octet-stream';
+    const type = req.params.type;
     
-    let contentType = contentTypes[ext] || 'application/octet-stream';
-    if (key.includes('/image/')) contentType = 'image/png';
-    else if (key.includes('/video/')) contentType = 'video/mp4';
-    else if (key.includes('/audio/')) contentType = 'audio/mpeg';
+    if (type === 'image' && data.length >= 4) {
+      // Check magic bytes
+      if (data[0] === 0xFF && data[1] === 0xD8 && data[2] === 0xFF) {
+        contentType = 'image/jpeg';
+      } else if (data[0] === 0x89 && data[1] === 0x50 && data[2] === 0x4E && data[3] === 0x47) {
+        contentType = 'image/png';
+      } else if (data[0] === 0x47 && data[1] === 0x49 && data[2] === 0x46) {
+        contentType = 'image/gif';
+      } else if (data[0] === 0x52 && data[1] === 0x49 && data[2] === 0x46 && data[3] === 0x46) {
+        contentType = 'image/webp';
+      } else {
+        contentType = 'image/png'; // fallback for images
+      }
+    } else if (type === 'video') {
+      contentType = 'video/mp4';
+    } else if (type === 'audio') {
+      contentType = 'audio/mpeg';
+    }
     
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');

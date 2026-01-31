@@ -1,5 +1,8 @@
 import { Client } from "@replit/object-storage";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const storageClient = new Client();
 
@@ -67,14 +70,23 @@ export async function saveMediaFromUrl(key: string, url: string): Promise<string
 
 export async function getMedia(key: string): Promise<Buffer | null> {
   try {
-    // Use downloadAsText and convert to Buffer (downloadAsBytes has a bug returning only 1 byte)
-    const result = await storageClient.downloadAsText(key);
+    // Use downloadToFilename to preserve binary data integrity
+    const tempDir = os.tmpdir();
+    const tempFile = path.join(tempDir, `media_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    
+    const result = await storageClient.downloadToFilename(key, tempFile);
     if (!result.ok) {
       console.error('Error downloading media:', result.error);
       return null;
     }
-    // Convert binary string to Buffer
-    return Buffer.from(result.value, 'binary');
+    
+    // Read the file as binary
+    const buffer = fs.readFileSync(tempFile);
+    
+    // Clean up temp file
+    fs.unlinkSync(tempFile);
+    
+    return buffer;
   } catch (error) {
     console.error('Error getting media:', error);
     return null;
