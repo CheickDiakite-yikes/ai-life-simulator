@@ -58,8 +58,10 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
       if (response.ok) {
         const data = await response.json();
         if (data.url) {
-          setImgUrl(data.url);
-          event.imageUrl = data.url;
+          // Add cache-busting timestamp for newly generated images
+          const urlWithCacheBust = data.cached ? data.url : `${data.url}?t=${Date.now()}`;
+          setImgUrl(urlWithCacheBust);
+          event.imageUrl = data.url; // Save clean URL to state
           if (data.cached) console.log('Image loaded from cache');
         }
       }
@@ -83,7 +85,8 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
       if (response.ok) {
         const data = await response.json();
         if (data.url) {
-          setVidUrl(data.url);
+          const urlWithCacheBust = data.cached ? data.url : `${data.url}?t=${Date.now()}`;
+          setVidUrl(urlWithCacheBust);
           event.videoUrl = data.url;
           if (data.cached) console.log('Video loaded from cache');
         }
@@ -112,10 +115,11 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
       if (response.ok) {
         const data = await response.json();
         if (data.url) {
-          setAudioUrl(data.url);
+          const urlWithCacheBust = data.cached ? data.url : `${data.url}?t=${Date.now()}`;
+          setAudioUrl(urlWithCacheBust);
           event.audioUrl = data.url;
           if (data.cached) console.log('Audio loaded from cache');
-          const audio = new Audio(data.url);
+          const audio = new Audio(urlWithCacheBust);
           audio.play().catch(e => console.error("Audio playback failed", e));
         }
       }
@@ -235,7 +239,13 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
                
                {imgUrl && !vidUrl && (
                  <div className="rounded-sm overflow-hidden border border-stone-700 mt-4 animate-fade-in shadow-lg">
-                   <img src={imgUrl} alt="Scene" className="w-full h-auto object-cover max-h-80 sepia-[0.2]" />
+                   <img 
+                     src={imgUrl} 
+                     alt="Scene" 
+                     className="w-full h-auto object-cover max-h-80 sepia-[0.2]" 
+                     onError={(e) => console.error('Image load error:', imgUrl, e)}
+                     onLoad={() => console.log('Image loaded successfully:', imgUrl)}
+                   />
                  </div>
                )}
                
