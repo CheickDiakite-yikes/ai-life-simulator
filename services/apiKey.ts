@@ -3,11 +3,21 @@ import { logDebug, logWarn } from './logger';
 const LOCAL_STORAGE_KEY = 'SIMILI_API_KEY';
 
 export const getEnvApiKey = (): string => {
-  // Check for Vite environment variables
-  const envKey = (import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.VITE_API_KEY) as string | undefined;
+  // Server-side: check process.env first
+  if (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) {
+    return process.env.GEMINI_API_KEY;
+  }
   
-  if (!envKey || envKey === 'undefined' || envKey === 'null') return '';
-  return envKey;
+  // Client-side: check Vite environment variables
+  try {
+    const meta = import.meta as any;
+    const envKey = (meta.env?.VITE_GEMINI_API_KEY || meta.env?.VITE_API_KEY) as string | undefined;
+    if (envKey && envKey !== 'undefined' && envKey !== 'null') return envKey;
+  } catch {
+    // import.meta.env may not exist in all environments
+  }
+  
+  return '';
 };
 
 export const getStoredApiKey = (): string => {
