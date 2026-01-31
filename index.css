@@ -1,26 +1,22 @@
 /* Global styles */
 
-/* Prevent overscroll/pull-to-refresh visual issues */
+/* Prevent overscroll bounce while allowing normal scrolling */
 html, body {
   overscroll-behavior: none;
   overscroll-behavior-y: none;
   -webkit-overflow-scrolling: touch;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   height: 100%;
-  overflow: hidden;
 }
 
 body {
   min-height: 100%;
   min-height: 100dvh;
   overflow-x: hidden;
-  overflow-y: auto;
-  position: fixed;
-  width: 100%;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -28,10 +24,10 @@ body {
   min-height: 100dvh;
 }
 
-/* Prevent rubber-banding on iOS */
+/* Prevent rubber-banding on iOS while allowing scroll */
 @supports (-webkit-touch-callout: none) {
   body {
-    height: -webkit-fill-available;
+    min-height: -webkit-fill-available;
   }
   
   #root {
