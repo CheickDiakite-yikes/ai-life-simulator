@@ -17,12 +17,17 @@ const formatMarkdown = (text: string): React.ReactNode => {
     } else if (line.trim() === '') {
       elements.push(<div key={lineIdx} className="h-2" />);
     } else {
-      const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+      let processed = line;
+      processed = processed.replace(/\*\*([^*]+)\*\*/g, '<<BOLD>>$1<<ENDBOLD>>');
+      processed = processed.replace(/\*([^*]+)\*/g, '<<ITALIC>>$1<<ENDITALIC>>');
+      processed = processed.replace(/\*/g, '');
+      
+      const parts = processed.split(/(<<BOLD>>.*?<<ENDBOLD>>|<<ITALIC>>.*?<<ENDITALIC>>)/g);
       const formattedParts = parts.map((part, partIdx) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-          return <strong key={partIdx} className="text-amber-300">{part.slice(2, -2)}</strong>;
-        } else if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
-          return <em key={partIdx} className="text-stone-200">{part.slice(1, -1)}</em>;
+        if (part.startsWith('<<BOLD>>') && part.endsWith('<<ENDBOLD>>')) {
+          return <strong key={partIdx} className="text-amber-300">{part.slice(8, -11)}</strong>;
+        } else if (part.startsWith('<<ITALIC>>') && part.endsWith('<<ENDITALIC>>')) {
+          return <em key={partIdx} className="text-stone-200">{part.slice(10, -13)}</em>;
         }
         return part;
       });
