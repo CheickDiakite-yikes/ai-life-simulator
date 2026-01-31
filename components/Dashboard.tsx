@@ -3,7 +3,7 @@ import { Character, LifeEvent, TimeStep, NewsItem, SimulationConfig, NarrativeAr
 import { generateSceneImage, generateSceneVideo, generateSpeech } from '../services/geminiLoader';
 import { 
   Heart, Zap, Brain, Wallet, User, Calendar, Pause, Play, 
-  Send, Sparkles, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard, MessageCircle, Scroll, Info, X 
+  Send, BookOpen, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard, MessageCircle, Scroll, Info, X 
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -690,7 +690,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                   <div className="bg-[#1c1917] border border-stone-700 p-6 rounded-sm flex-1">
                      <span className="text-xs text-amber-500 flex items-center gap-2 font-heading tracking-widest">
-                        <Sparkles size={12} className="animate-spin" /> Consulting the Fates...
+                        <BookOpen size={12} className="animate-spin" /> Consulting the Fates...
                      </span>
                   </div>
                </div>
@@ -748,7 +748,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {activeSidebarTab === 'world' ? (
                   <Newspaper size={16} className="text-stone-500" />
                 ) : (
-                  <Sparkles size={16} className="text-stone-500" />
+                  <BookOpen size={16} className="text-stone-500" />
                 )}
                 <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest font-heading">
                   {activeSidebarTab === 'world' ? 'World Feed' : 'Insights'}
@@ -924,7 +924,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
            onClick={() => setMobileTab('insights')}
            className={`flex flex-col items-center gap-1 p-2 ${mobileTab === 'insights' ? 'text-amber-500' : 'text-stone-600'}`}
          >
-           <Sparkles size={20} />
+           <BookOpen size={20} />
            <span className="text-[10px] font-medium font-heading">Insights</span>
          </button>
 
@@ -945,7 +945,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             <div className="flex items-center justify-between p-4 border-b border-stone-800">
               <div className="flex items-center gap-2">
-                <Sparkles size={18} className="text-amber-500" />
+                <BookOpen size={18} className="text-amber-500" />
                 <h3 className="font-bold text-amber-100 font-heading uppercase tracking-wider text-sm">About Insights</h3>
               </div>
               <button 

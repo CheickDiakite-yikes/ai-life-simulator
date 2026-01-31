@@ -3,6 +3,36 @@ import { getChatResponse } from '../services/geminiLoader';
 import { logError, logDebug } from '../services/logger';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 
+const formatMarkdown = (text: string): React.ReactNode => {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  
+  lines.forEach((line, lineIdx) => {
+    if (line.startsWith('### ')) {
+      elements.push(<div key={lineIdx} className="font-bold text-amber-400 mt-2 mb-1">{line.slice(4)}</div>);
+    } else if (line.startsWith('## ')) {
+      elements.push(<div key={lineIdx} className="font-bold text-amber-300 mt-2 mb-1">{line.slice(3)}</div>);
+    } else if (line.startsWith('# ')) {
+      elements.push(<div key={lineIdx} className="font-bold text-amber-200 mt-2 mb-1">{line.slice(2)}</div>);
+    } else if (line.trim() === '') {
+      elements.push(<div key={lineIdx} className="h-2" />);
+    } else {
+      const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+      const formattedParts = parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={partIdx} className="text-amber-300">{part.slice(2, -2)}</strong>;
+        } else if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+          return <em key={partIdx} className="text-stone-200">{part.slice(1, -1)}</em>;
+        }
+        return part;
+      });
+      elements.push(<div key={lineIdx}>{formattedParts}</div>);
+    }
+  });
+  
+  return <>{elements}</>;
+};
+
 interface ChatInterfaceProps {
   isOpen: boolean;
   onClose: () => void;
@@ -150,7 +180,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
         {history.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] p-3 rounded-sm text-sm font-serif ${msg.role === 'user' ? 'bg-amber-900/40 border border-amber-700/30 text-amber-100' : 'bg-stone-800/50 border border-stone-700 text-stone-300'}`}>
-              {msg.parts[0].text}
+              {msg.role === 'model' ? formatMarkdown(msg.parts[0].text) : msg.parts[0].text}
             </div>
           </div>
         ))}
