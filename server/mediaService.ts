@@ -11,14 +11,19 @@ export interface MediaResult {
 function generateMediaKey(type: 'image' | 'video' | 'audio', prompt: string, options?: Record<string, string>): string {
   const optionsStr = options ? JSON.stringify(options) : '';
   const hash = crypto.createHash('sha256').update(`${type}:${prompt}:${optionsStr}`).digest('hex').slice(0, 16);
-  return `media/${type}/${hash}`;
+  const ext = type === 'image' ? 'png' : type === 'video' ? 'mp4' : 'wav';
+  return `media/${type}/${hash}.${ext}`;
+}
+
+function keyToApiUrl(key: string): string {
+  return `/api/${key}`;
 }
 
 export async function checkMediaExists(key: string): Promise<string | null> {
   try {
     const { ok, value } = await storageClient.exists(key);
     if (ok && value) {
-      return `/api/media/${key}`;
+      return keyToApiUrl(key);
     }
     return null;
   } catch (error) {
@@ -34,7 +39,7 @@ export async function saveMediaFromBase64(key: string, base64Data: string, conte
     if (!ok) {
       throw new Error(`Failed to upload media: ${error?.message}`);
     }
-    return `/api/media/${key}`;
+    return keyToApiUrl(key);
   } catch (error) {
     console.error('Error saving media:', error);
     throw error;
@@ -53,7 +58,7 @@ export async function saveMediaFromUrl(key: string, url: string): Promise<string
     if (!ok) {
       throw new Error(`Failed to upload media: ${error?.message}`);
     }
-    return `/api/media/${key}`;
+    return keyToApiUrl(key);
   } catch (error) {
     console.error('Error saving media from URL:', error);
     throw error;
