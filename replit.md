@@ -92,6 +92,20 @@ Simili is an AI-powered hyper-realistic life simulator using React, TypeScript, 
 - `GEMINI_API_KEY` - Google Gemini API key (stored as secret)
 
 ## Recent Changes
+- 2026-01-31: Comprehensive README documentation update
+  - Full technical architecture with ASCII diagram
+  - Complete API reference with request/response examples
+  - Database schema documentation
+  - Media generation and storage documentation
+  - Authentication system details
+  - Project structure breakdown
+  - Contributing guidelines
+- 2026-01-31: Fixed media storage and serving
+  - Fixed Object Storage retrieval using downloadToFilename (binary data integrity)
+  - Added magic byte detection for correct content-type (JPEG vs PNG)
+  - Added cache-busting for newly generated media
+  - Fixed Oracle chat message persistence per game
+  - Fixed markdown rendering in Oracle responses
 - 2026-01-31: Implemented persistent media storage with Replit Object Storage
   - AI-generated images, videos, and audio are now cached and stored permanently
   - Media is only generated once per unique prompt (token efficient)
