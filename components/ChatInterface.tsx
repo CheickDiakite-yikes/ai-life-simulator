@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getChatResponse } from '../services/geminiLoader';
-import { logError } from '../services/logger';
+import { logError, logDebug } from '../services/logger';
 import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 
 interface ChatInterfaceProps {
@@ -8,19 +8,88 @@ interface ChatInterfaceProps {
   onClose: () => void;
   onOpen: () => void;
   gameContext: string;
+  saveId: number | null;
 }
 
-export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, onOpen, gameContext }) => {
+interface ChatMessage {
+  role: string;
+  parts: { text: string }[];
+}
+
+export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, onOpen, gameContext, saveId }) => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<{role: string, parts: {text: string}[]}[]>([]);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastLoadedSaveId = useRef<number | null>(null);
+
+  const loadMessages = useCallback(async () => {
+    if (!saveId) {
+      setHistory([]);
+      return;
+    }
+    
+    if (lastLoadedSaveId.current === saveId && history.length > 0) {
+      return;
+    }
+    
+    setLoadingMessages(true);
+    try {
+      const response = await fetch(`/api/messages/${saveId}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const messages = await response.json();
+        const formattedMessages: ChatMessage[] = messages.map((msg: { role: string; content: string }) => ({
+          role: msg.role,
+          parts: [{ text: msg.content }]
+        }));
+        setHistory(formattedMessages);
+        lastLoadedSaveId.current = saveId;
+        logDebug('Loaded chat messages', { saveId, count: messages.length });
+      }
+    } catch (error) {
+      logError('Failed to load chat messages', error);
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [saveId, history.length]);
+
+  useEffect(() => {
+    if (isOpen && saveId) {
+      loadMessages();
+    }
+  }, [isOpen, saveId, loadMessages]);
+
+  useEffect(() => {
+    if (saveId !== lastLoadedSaveId.current) {
+      setHistory([]);
+      lastLoadedSaveId.current = null;
+    }
+  }, [saveId]);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [history, isOpen]);
+
+  const saveMessage = async (role: string, content: string) => {
+    if (!saveId) return;
+    
+    try {
+      await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ saveId, role, content })
+      });
+    } catch (error) {
+      logError('Failed to save chat message', error);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -31,13 +100,19 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
     
     const newHistory = [...history, { role: 'user', parts: [{ text: userMsg }] }];
     setHistory(newHistory);
+    
+    await saveMessage('user', userMsg);
 
     try {
       const responseText = await getChatResponse(newHistory, userMsg, gameContext);
-      setHistory(prev => [...prev, { role: 'model', parts: [{ text: responseText || "I couldn't process that." }] }]);
+      const aiResponse = responseText || "I couldn't process that.";
+      setHistory(prev => [...prev, { role: 'model', parts: [{ text: aiResponse }] }]);
+      await saveMessage('model', aiResponse);
     } catch (error) {
         logError('Oracle chat failed', error);
-        setHistory(prev => [...prev, { role: 'model', parts: [{ text: "Error connecting to AI." }] }]);
+        const errorMsg = "Error connecting to AI.";
+        setHistory(prev => [...prev, { role: 'model', parts: [{ text: errorMsg }] }]);
+        await saveMessage('model', errorMsg);
     } finally {
       setLoading(false);
     }
@@ -62,6 +137,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
       </div>
       
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0c0a09]">
+        {loadingMessages && (
+          <div className="text-stone-500 text-xs flex items-center justify-center gap-2 py-4 font-serif">
+            <Loader2 className="animate-spin" size={12}/> Loading conversation...
+          </div>
+        )}
+        {!loadingMessages && history.length === 0 && (
+          <div className="text-stone-600 text-xs text-center py-8 font-serif italic">
+            The Oracle awaits your questions...
+          </div>
+        )}
         {history.map((msg, idx) => (
           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] p-3 rounded-sm text-sm font-serif ${msg.role === 'user' ? 'bg-amber-900/40 border border-amber-700/30 text-amber-100' : 'bg-stone-800/50 border border-stone-700 text-stone-300'}`}>
@@ -80,15 +165,21 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ isOpen, onClose, o
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Ask the Oracle..."
           className="flex-1 bg-[#0c0a09] border border-stone-700 rounded-sm px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-700 font-serif"
+          disabled={!saveId}
         />
         <button 
           onClick={handleSend}
-          disabled={loading}
+          disabled={loading || !saveId}
           className="p-2 bg-amber-800 rounded-sm hover:bg-amber-700 disabled:opacity-50 text-amber-100"
         >
           <Send size={16} />
         </button>
       </div>
+      {!saveId && (
+        <div className="px-3 pb-2 text-[10px] text-stone-600 text-center">
+          Save your game to enable chat history
+        </div>
+      )}
     </div>
   );
 };

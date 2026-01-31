@@ -817,6 +817,7 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         onClose={() => setIsChatOpen(false)}
         onOpen={() => setIsChatOpen(true)}
         gameContext={gameContext}
+        saveId={currentSaveId}
       />
       <EthicsModal
         isOpen={isEthicsOpen}
