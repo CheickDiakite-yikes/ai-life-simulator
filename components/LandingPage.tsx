@@ -71,7 +71,8 @@ const FloatingOrb: React.FC<{ className?: string; delay?: number }> = ({ classNa
   const orbRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
-    if (orbRef.current) {
+    if (!orbRef.current) return;
+    const ctx = gsap.context(() => {
       gsap.to(orbRef.current, {
         y: -20,
         duration: 3,
@@ -80,7 +81,8 @@ const FloatingOrb: React.FC<{ className?: string; delay?: number }> = ({ classNa
         ease: "sine.inOut",
         delay
       });
-    }
+    }, orbRef);
+    return () => ctx.revert();
   }, [delay]);
 
   return (
@@ -191,7 +193,8 @@ const ScrollIndicator: React.FC = () => {
   const indicatorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (indicatorRef.current) {
+    if (!indicatorRef.current) return;
+    const ctx = gsap.context(() => {
       gsap.to(indicatorRef.current, {
         y: 10,
         opacity: 0.3,
@@ -200,7 +203,8 @@ const ScrollIndicator: React.FC = () => {
         yoyo: true,
         ease: "power2.inOut"
       });
-    }
+    }, indicatorRef);
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -217,8 +221,10 @@ const ShootingStar: React.FC<{ delay?: number; startX?: number; startY?: number 
   const starRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (starRef.current) {
+    if (!starRef.current) return;
+    const ctx = gsap.context(() => {
       const animateStar = () => {
+        if (!starRef.current) return;
         const randomDelay = delay + Math.random() * 10;
         gsap.set(starRef.current, { 
           x: startX, 
@@ -237,7 +243,8 @@ const ShootingStar: React.FC<{ delay?: number; startX?: number; startY?: number 
           });
       };
       animateStar();
-    }
+    }, starRef);
+    return () => ctx.revert();
   }, [delay, startX, startY]);
 
   return (
@@ -282,7 +289,8 @@ const Satellite: React.FC<{ orbitRadius?: number; speed?: number; startAngle?: n
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (satelliteRef.current && containerRef.current) {
+    if (!satelliteRef.current || !containerRef.current) return;
+    const ctx = gsap.context(() => {
       gsap.to(containerRef.current, {
         rotation: 360,
         duration: speed,
@@ -295,7 +303,8 @@ const Satellite: React.FC<{ orbitRadius?: number; speed?: number; startAngle?: n
         repeat: -1,
         ease: "none"
       });
-    }
+    }, containerRef);
+    return () => ctx.revert();
   }, [speed]);
 
   return (
@@ -329,8 +338,10 @@ const Spacecraft: React.FC<{ delay?: number; direction?: 'left' | 'right' }> = (
   const craftRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (craftRef.current) {
+    if (!craftRef.current) return;
+    const ctx = gsap.context(() => {
       const animate = () => {
+        if (!craftRef.current) return;
         const startX = direction === 'right' ? -100 : window.innerWidth + 100;
         const endX = direction === 'right' ? window.innerWidth + 100 : -100;
         const startY = 50 + Math.random() * 200;
@@ -348,7 +359,8 @@ const Spacecraft: React.FC<{ delay?: number; direction?: 'left' | 'right' }> = (
           .to(craftRef.current, { opacity: 0, duration: 0.5 }, "-=0.5");
       };
       animate();
-    }
+    }, craftRef);
+    return () => ctx.revert();
   }, [delay, direction]);
 
   return (
@@ -369,7 +381,8 @@ const TwinklingStar: React.FC<{ x: number; y: number; delay?: number }> = ({ x, 
   const starRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (starRef.current) {
+    if (!starRef.current) return;
+    const ctx = gsap.context(() => {
       gsap.to(starRef.current, {
         opacity: 0.2,
         scale: 0.5,
@@ -379,7 +392,8 @@ const TwinklingStar: React.FC<{ x: number; y: number; delay?: number }> = ({ x, 
         ease: "sine.inOut",
         delay: delay
       });
-    }
+    }, starRef);
+    return () => ctx.revert();
   }, [delay]);
 
   return (
@@ -395,7 +409,8 @@ const GlowingTitle: React.FC<{ children: React.ReactNode; className?: string }> 
   const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
-    if (titleRef.current) {
+    if (!titleRef.current) return;
+    const ctx = gsap.context(() => {
       gsap.to(titleRef.current, {
         textShadow: "0 0 40px rgba(251, 191, 36, 0.4), 0 0 80px rgba(251, 191, 36, 0.2)",
         duration: 2,
@@ -403,7 +418,8 @@ const GlowingTitle: React.FC<{ children: React.ReactNode; className?: string }> 
         yoyo: true,
         ease: "sine.inOut"
       });
-    }
+    }, titleRef);
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -418,7 +434,8 @@ const PulsingButton: React.FC<{ onClick: () => void; children: React.ReactNode }
   const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (glowRef.current) {
+    if (!glowRef.current) return;
+    const ctx = gsap.context(() => {
       gsap.to(glowRef.current, {
         opacity: 0.6,
         scale: 1.1,
@@ -427,7 +444,8 @@ const PulsingButton: React.FC<{ onClick: () => void; children: React.ReactNode }
         yoyo: true,
         ease: "sine.inOut"
       });
-    }
+    }, glowRef);
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -452,8 +470,10 @@ const MagicSparkle: React.FC<{ delay?: number }> = ({ delay = 0 }) => {
   const sparkleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (sparkleRef.current) {
+    if (!sparkleRef.current) return;
+    const ctx = gsap.context(() => {
       const animate = () => {
+        if (!sparkleRef.current) return;
         const x = Math.random() * 100;
         const y = Math.random() * 100;
         gsap.set(sparkleRef.current, { left: `${x}%`, top: `${y}%`, opacity: 0, scale: 0 });
@@ -462,7 +482,8 @@ const MagicSparkle: React.FC<{ delay?: number }> = ({ delay = 0 }) => {
           .to(sparkleRef.current, { opacity: 0, scale: 0.5, rotation: 180, duration: 0.5, ease: "power2.in" });
       };
       animate();
-    }
+    }, sparkleRef);
+    return () => ctx.revert();
   }, [delay]);
 
   return (
