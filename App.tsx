@@ -563,21 +563,21 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
         </button>
         
         {/* Header */}
-        <div className="flex-none pt-8 md:pt-12 pb-4 z-10">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-[0.2em] font-heading text-[#e7e5e4] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 gold-text">
+        <div className="flex-none pt-4 md:pt-12 pb-2 md:pb-4 z-10">
+          <h1 className="text-4xl md:text-7xl font-bold tracking-[0.15em] md:tracking-[0.2em] font-heading text-[#e7e5e4] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-1 md:mb-2 gold-text">
             SIMILI
           </h1>
-          <div className="flex items-center justify-center gap-4">
-             <div className="h-px w-12 bg-amber-600/50"></div>
-             <p className="text-sm md:text-base text-stone-400 font-light tracking-widest uppercase font-heading">
+          <div className="flex items-center justify-center gap-2 md:gap-4">
+             <div className="h-px w-8 md:w-12 bg-amber-600/50"></div>
+             <p className="text-xs md:text-base text-stone-400 font-light tracking-wider md:tracking-widest uppercase font-heading">
                Welcome, {user.fullName.split(' ')[0]}
              </p>
-             <div className="h-px w-12 bg-amber-600/50"></div>
+             <div className="h-px w-8 md:w-12 bg-amber-600/50"></div>
           </div>
         </div>
 
         {/* Carousel Container */}
-        <div className="w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-20 px-12 md:px-4 pt-2 md:pt-0 md:flex-1 md:min-h-0">
+        <div className="w-full max-w-6xl mx-auto flex items-start md:items-center justify-center relative z-20 px-10 md:px-4 pt-0 md:pt-0 md:flex-1 md:min-h-0">
           
           {/* Mobile Navigation Arrows - positioned outside the card area */}
           <button 
@@ -622,24 +622,24 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                    {/* Card Body - Marble Tablet Look */}
                    <div className={`
                       w-full marble-texture border-4 ${isActive ? 'border-[#b45309]' : 'border-stone-600/30'} 
-                      rounded-t-[40px] rounded-b-xl p-4 md:p-8 flex flex-col items-center text-center shadow-2xl
+                      rounded-t-[32px] md:rounded-t-[40px] rounded-b-xl p-3 md:p-8 flex flex-col items-center text-center shadow-2xl
                       ${isActive ? 'shadow-[0_0_50px_rgba(0,0,0,0.7)]' : ''}
-                      h-[380px] sm:h-[420px] md:h-[500px] justify-between relative overflow-visible bg-[#e7e5e4]
+                      h-[320px] sm:h-[380px] md:h-[500px] justify-between relative overflow-visible bg-[#e7e5e4]
                    `}>
                       {/* Inner Border Decoration */}
-                      <div className="absolute inset-2 border border-stone-400/30 rounded-t-[32px] rounded-b-lg pointer-events-none"></div>
+                      <div className="absolute inset-1.5 md:inset-2 border border-stone-400/30 rounded-t-[26px] md:rounded-t-[32px] rounded-b-lg pointer-events-none"></div>
                       
                       {/* Top Section */}
                       <div className="flex flex-col items-center relative z-10 w-full">
-                        <div className="mb-2 md:mb-6 p-2 md:p-4">
-                          <mode.icon size={40} className={`${mode.iconColor} drop-shadow-md md:hidden`} strokeWidth={1.5} />
+                        <div className="mb-1 md:mb-6 p-1.5 md:p-4">
+                          <mode.icon size={32} className={`${mode.iconColor} drop-shadow-md md:hidden`} strokeWidth={1.5} />
                           <mode.icon size={56} className={`${mode.iconColor} drop-shadow-md hidden md:block`} strokeWidth={1.5} />
                         </div>
-                        <h2 className="text-xl md:text-2xl font-bold text-stone-800 mb-1 md:mb-2 font-heading tracking-wider">{mode.title}</h2>
-                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] mb-2 md:mb-4 text-stone-500 border-b border-stone-300 pb-1">
+                        <h2 className="text-lg md:text-2xl font-bold text-stone-800 mb-0.5 md:mb-2 font-heading tracking-wider">{mode.title}</h2>
+                        <span className="text-[9px] md:text-xs font-bold uppercase tracking-[0.15em] md:tracking-[0.2em] mb-1 md:mb-4 text-stone-500 border-b border-stone-300 pb-0.5 md:pb-1">
                           {mode.subtitle}
                         </span>
-                        <p className="text-xs md:text-sm text-stone-600 leading-relaxed mb-3 md:mb-6 font-serif italic px-2">
+                        <p className="text-[11px] md:text-sm text-stone-600 leading-snug md:leading-relaxed mb-2 md:mb-6 font-serif italic px-1 md:px-2 line-clamp-2 md:line-clamp-none">
                           {mode.desc}
                         </p>
                       </div>
@@ -647,35 +647,37 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                       {/* Middle/Bottom Section (Inputs or Decoration) */}
                       <div className="w-full relative z-10 mt-auto">
                         {mode.mode === GameMode.FAKE ? (
-                           <div className="space-y-3 mb-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                           <div className="space-y-2 md:space-y-3 mb-3 md:mb-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
                              <div className="relative">
-                               <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
+                               <User size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-500 md:hidden" />
+                               <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 hidden md:block" />
                                <input 
                                  type="text" 
                                  placeholder="Name" 
                                  value={customInputs.name}
                                  onChange={(e) => setCustomInputs({...customInputs, name: e.target.value})}
-                                 className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2.5 pl-9 pr-3 text-sm text-stone-800 placeholder-stone-500 focus:border-amber-600 focus:outline-none transition-colors font-serif"
+                                 className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2 md:py-2.5 pl-7 md:pl-9 pr-2 md:pr-3 text-xs md:text-sm text-stone-800 placeholder-stone-500 focus:border-amber-600 focus:outline-none transition-colors font-serif"
                                />
                              </div>
                              <div className="relative">
-                               <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500" />
+                               <MapPin size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-500 md:hidden" />
+                               <MapPin size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 hidden md:block" />
                                <input 
                                  type="text" 
                                  placeholder="Birthplace" 
                                  value={customInputs.location}
                                  onChange={(e) => setCustomInputs({...customInputs, location: e.target.value})}
-                                 className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2.5 pl-9 pr-3 text-sm text-stone-800 placeholder-stone-500 focus:border-amber-600 focus:outline-none transition-colors font-serif"
+                                 className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2 md:py-2.5 pl-7 md:pl-9 pr-2 md:pr-3 text-xs md:text-sm text-stone-800 placeholder-stone-500 focus:border-amber-600 focus:outline-none transition-colors font-serif"
                                />
                              </div>
                            </div>
                         ) : mode.mode === GameMode.ALTERNATIVE ? (
-                          <div className="space-y-3 mb-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
-                            <label className="text-[10px] uppercase tracking-[0.2em] text-stone-500 font-heading">Sub-Genre (Optional)</label>
+                          <div className="space-y-1.5 md:space-y-3 mb-3 md:mb-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
+                            <label className="text-[9px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] text-stone-500 font-heading">Sub-Genre (Optional)</label>
                             <select
                               value={altGenreInput}
                               onChange={(e) => setAltGenreInput(e.target.value as AltGenre | '')}
-                              className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2.5 px-3 text-sm text-stone-800 focus:border-amber-600 focus:outline-none transition-colors font-serif"
+                              className="w-full bg-stone-200/50 border border-stone-400/50 rounded-lg py-2 md:py-2.5 px-2 md:px-3 text-xs md:text-sm text-stone-800 focus:border-amber-600 focus:outline-none transition-colors font-serif"
                             >
                               <option value="">Random</option>
                               <option value="fantasy">Fantasy</option>
@@ -683,13 +685,14 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                               <option value="superhero">Superhero</option>
                               <option value="horror">Horror</option>
                             </select>
-                            <p className="text-xs text-stone-500 font-serif italic">
+                            <p className="text-[10px] md:text-xs text-stone-500 font-serif italic">
                               Leave blank for a random world.
                             </p>
                           </div>
                         ) : (
-                          <div className="mb-8 opacity-40">
-                             <Scroll size={32} className="mx-auto text-stone-400" />
+                          <div className="mb-4 md:mb-8 opacity-40">
+                             <Scroll size={24} className="mx-auto text-stone-400 md:hidden" />
+                             <Scroll size={32} className="mx-auto text-stone-400 hidden md:block" />
                           </div>
                         )}
 
@@ -698,29 +701,30 @@ const App: React.FC<AppProps> = ({ onBackToLanding }) => {
                             onClick={(e) => { e.stopPropagation(); startGame(mode.mode); }}
                             disabled={loading}
                             className={`
-                              flex-1 py-3.5 rounded-lg text-sm font-bold tracking-[0.15em] shadow-lg transition-all transform active:scale-95
+                              flex-1 py-2.5 md:py-3.5 rounded-lg text-xs md:text-sm font-bold tracking-[0.1em] md:tracking-[0.15em] shadow-lg transition-all transform active:scale-95
                               ${mode.buttonBg} disabled:opacity-50 disabled:cursor-not-allowed font-heading
                               relative overflow-hidden group
                             `}
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
                             {loading ? (
-                              <span className="flex items-center justify-center gap-2">
-                                 <div className="w-4 h-4 border-2 border-amber-200/30 border-t-amber-100 rounded-full animate-spin"></div>
+                              <span className="flex items-center justify-center gap-1.5 md:gap-2">
+                                 <div className="w-3 h-3 md:w-4 md:h-4 border-2 border-amber-200/30 border-t-amber-100 rounded-full animate-spin"></div>
                                  DIVINING...
                               </span>
                             ) : (
-                              <span className="flex items-center justify-center gap-2">
-                                 INITIALIZE <Play size={12} fill="currentColor" />
+                              <span className="flex items-center justify-center gap-1.5 md:gap-2">
+                                 INITIALIZE <Play size={10} className="md:hidden" fill="currentColor" /><Play size={12} className="hidden md:block" fill="currentColor" />
                               </span>
                             )}
                           </button>
                           <button 
                             onClick={(e) => { e.stopPropagation(); setSettingsModalMode(mode.mode); }}
-                            className="px-3.5 py-3.5 rounded-lg bg-stone-300/80 hover:bg-stone-400/80 border border-stone-400/50 text-stone-700 transition-colors shadow-lg"
+                            className="px-2.5 md:px-3.5 py-2.5 md:py-3.5 rounded-lg bg-stone-300/80 hover:bg-stone-400/80 border border-stone-400/50 text-stone-700 transition-colors shadow-lg"
                             title="Simulation Settings"
                           >
-                            <Settings size={18} />
+                            <Settings size={16} className="md:hidden" />
+                            <Settings size={18} className="hidden md:block" />
                           </button>
                         </div>
                       </div>
