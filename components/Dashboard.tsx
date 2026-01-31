@@ -49,10 +49,19 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
     setLoadingMedia('image');
     try {
       const prompt = event.visualPrompt || event.description;
-      const url = await generateSceneImage(prompt, "16:9", "2K");
-      if (url) {
-        setImgUrl(url);
-        event.imageUrl = url; // Cache in object
+      const response = await fetch('/api/generate/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ prompt, aspectRatio: "16:9", resolution: "2K" })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          setImgUrl(data.url);
+          event.imageUrl = data.url;
+          if (data.cached) console.log('Image loaded from cache');
+        }
       }
     } catch (e) {
       console.error("Failed to generate image", e);
@@ -65,10 +74,19 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
     setLoadingMedia('video');
     try {
       const prompt = event.visualPrompt || event.description;
-      const url = await generateSceneVideo(prompt, "16:9");
-      if (url) {
-        setVidUrl(url);
-        event.videoUrl = url; // Cache in object
+      const response = await fetch('/api/generate/video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ prompt, aspectRatio: "16:9" })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          setVidUrl(data.url);
+          event.videoUrl = data.url;
+          if (data.cached) console.log('Video loaded from cache');
+        }
       }
     } catch (e) {
       console.error("Failed to generate video", e);
@@ -77,7 +95,6 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
   };
 
   const handleGenAudio = async () => {
-    // If we already have the URL, just play it
     if (audioUrl) {
       const audio = new Audio(audioUrl);
       audio.play().catch(e => console.error("Audio playback failed", e));
@@ -86,12 +103,21 @@ const EventCard: React.FC<{ event: LifeEvent; isCurrent?: boolean; showCausality
 
     setLoadingMedia('audio');
     try {
-      const url = await generateSpeech(event.description);
-      if (url) {
-        setAudioUrl(url);
-        event.audioUrl = url; // Cache
-        const audio = new Audio(url);
-        audio.play().catch(e => console.error("Audio playback failed", e));
+      const response = await fetch('/api/generate/audio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text: event.description })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          setAudioUrl(data.url);
+          event.audioUrl = data.url;
+          if (data.cached) console.log('Audio loaded from cache');
+          const audio = new Audio(data.url);
+          audio.play().catch(e => console.error("Audio playback failed", e));
+        }
       }
     } catch (e) {
       console.error("Failed to generate speech", e);

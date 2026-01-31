@@ -6,6 +6,7 @@ import crypto from "crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { storage } from "./storage";
+import { getMedia, getOrGenerateImage, getOrGenerateVideo, getOrGenerateAudio } from "./mediaService";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -324,6 +325,119 @@ app.post("/api/messages", async (req, res) => {
     res.json(message);
   } catch (error) {
     res.status(500).json({ error: "Failed to create message" });
+  }
+});
+
+app.get("/api/media/:type/:hash", async (req, res) => {
+  try {
+    const key = `media/${req.params.type}/${req.params.hash}`;
+    const data = await getMedia(key);
+    if (!data) {
+      return res.status(404).json({ error: "Media not found" });
+    }
+    
+    const ext = key.split('.').pop() || '';
+    const contentTypes: Record<string, string> = {
+      'png': 'image/png',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'webp': 'image/webp',
+      'gif': 'image/gif',
+      'mp4': 'video/mp4',
+      'webm': 'video/webm',
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+    };
+    
+    let contentType = contentTypes[ext] || 'application/octet-stream';
+    if (key.includes('/image/')) contentType = 'image/png';
+    else if (key.includes('/video/')) contentType = 'video/mp4';
+    else if (key.includes('/audio/')) contentType = 'audio/mpeg';
+    
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(data);
+  } catch (error) {
+    console.error('Error serving media:', error);
+    res.status(500).json({ error: "Failed to serve media" });
+  }
+});
+
+app.post("/api/generate/image", async (req, res) => {
+  try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    const { prompt, aspectRatio = "16:9", resolution = "2K" } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: "prompt is required" });
+    }
+    
+    const { generateSceneImage } = await import("../services/geminiService.js");
+    
+    const result = await getOrGenerateImage(prompt, aspectRatio, resolution, generateSceneImage);
+    if (!result) {
+      return res.status(500).json({ error: "Failed to generate image" });
+    }
+    
+    res.json({ url: result.url, cached: result.cached });
+  } catch (error: any) {
+    console.error('Error generating image:', error);
+    res.status(500).json({ error: error?.message || "Failed to generate image" });
+  }
+});
+
+app.post("/api/generate/video", async (req, res) => {
+  try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    const { prompt, aspectRatio = "16:9" } = req.body;
+    if (!prompt) {
+      return res.status(400).json({ error: "prompt is required" });
+    }
+    
+    const { generateSceneVideo } = await import("../services/geminiService.js");
+    
+    const result = await getOrGenerateVideo(prompt, aspectRatio, generateSceneVideo);
+    if (!result) {
+      return res.status(500).json({ error: "Failed to generate video" });
+    }
+    
+    res.json({ url: result.url, cached: result.cached });
+  } catch (error: any) {
+    console.error('Error generating video:', error);
+    res.status(500).json({ error: error?.message || "Failed to generate video" });
+  }
+});
+
+app.post("/api/generate/audio", async (req, res) => {
+  try {
+    const user = await getAuthenticatedUser(req);
+    if (!user) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "text is required" });
+    }
+    
+    const { generateSpeech } = await import("../services/geminiService.js");
+    
+    const result = await getOrGenerateAudio(text, generateSpeech);
+    if (!result) {
+      return res.status(500).json({ error: "Failed to generate audio" });
+    }
+    
+    res.json({ url: result.url, cached: result.cached });
+  } catch (error: any) {
+    console.error('Error generating audio:', error);
+    res.status(500).json({ error: error?.message || "Failed to generate audio" });
   }
 });
 
