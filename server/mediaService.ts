@@ -67,12 +67,14 @@ export async function saveMediaFromUrl(key: string, url: string): Promise<string
 
 export async function getMedia(key: string): Promise<Buffer | null> {
   try {
-    const result = await storageClient.downloadAsBytes(key);
+    // Use downloadAsText and convert to Buffer (downloadAsBytes has a bug returning only 1 byte)
+    const result = await storageClient.downloadAsText(key);
     if (!result.ok) {
       console.error('Error downloading media:', result.error);
       return null;
     }
-    return result.value as unknown as Buffer;
+    // Convert binary string to Buffer
+    return Buffer.from(result.value, 'binary');
   } catch (error) {
     console.error('Error getting media:', error);
     return null;
@@ -94,24 +96,30 @@ export async function getOrGenerateImage(
   }
   
   console.log('Generating new image for:', prompt.slice(0, 50) + '...');
-  const result = await generateFn(prompt, aspectRatio, resolution);
-  
-  if (!result) {
-    return null;
-  }
-  
   try {
+    const result = await generateFn(prompt, aspectRatio, resolution);
+    
+    if (!result) {
+      console.error('Image generation returned null');
+      return null;
+    }
+    
+    console.log('Image generated, result type:', result.startsWith('data:') ? 'base64' : 'url');
+    
     if (result.startsWith('data:')) {
       const base64Data = result.split(',')[1];
+      console.log('Saving base64 image, length:', base64Data.length);
       const url = await saveMediaFromBase64(key, base64Data, 'image/png');
+      console.log('Image saved, URL:', url);
       return { url, cached: false };
     } else {
       const url = await saveMediaFromUrl(key, result);
+      console.log('Image saved from URL:', url);
       return { url, cached: false };
     }
   } catch (error) {
-    console.error('Failed to save image, returning original URL:', error);
-    return { url: result, cached: false };
+    console.error('Failed to generate/save image:', error);
+    return null;
   }
 }
 
