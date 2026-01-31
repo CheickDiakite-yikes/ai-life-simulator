@@ -3,7 +3,7 @@ import { Character, LifeEvent, TimeStep, NewsItem, SimulationConfig, NarrativeAr
 import { generateSceneImage, generateSceneVideo, generateSpeech } from '../services/geminiLoader';
 import { 
   Heart, Zap, Brain, Wallet, User, Calendar, Pause, Play, 
-  Send, Sparkles, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard, MessageCircle, Scroll 
+  Send, Sparkles, Activity, Globe, Newspaper, Camera, Video, Volume2, Loader2, Home, CheckCircle2, LayoutDashboard, MessageCircle, Scroll, Info, X 
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -305,6 +305,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [allNews, setAllNews] = useState<NewsItem[]>([]);
   const [mobileTab, setMobileTab] = useState<'profile' | 'feed' | 'news' | 'insights'>('feed');
   const [rightTab, setRightTab] = useState<'world' | 'insights'>('world');
+  const [showInsightsInfo, setShowInsightsInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const activeSidebarTab = mobileTab === 'insights' ? 'insights' : mobileTab === 'news' ? 'world' : rightTab;
 
@@ -752,6 +753,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <h3 className="text-xs font-bold text-stone-500 uppercase tracking-widest font-heading">
                   {activeSidebarTab === 'world' ? 'World Feed' : 'Insights'}
                 </h3>
+                {activeSidebarTab === 'insights' && (
+                  <button
+                    onClick={() => setShowInsightsInfo(true)}
+                    className="p-1 text-stone-500 hover:text-amber-400 transition-colors rounded-full hover:bg-stone-800"
+                    title="What is this page?"
+                  >
+                    <Info size={14} />
+                  </button>
+                )}
               </div>
               <div className="hidden md:flex items-center gap-2">
                 <button
@@ -926,6 +936,67 @@ export const Dashboard: React.FC<DashboardProps> = ({
            <span className="text-[10px] font-medium font-heading">Oracle</span>
          </button>
       </div>
+
+      {showInsightsInfo && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4" onClick={() => setShowInsightsInfo(false)}>
+          <div 
+            className="bg-[#1c1917] border border-stone-700 rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-stone-800">
+              <div className="flex items-center gap-2">
+                <Sparkles size={18} className="text-amber-500" />
+                <h3 className="font-bold text-amber-100 font-heading uppercase tracking-wider text-sm">About Insights</h3>
+              </div>
+              <button 
+                onClick={() => setShowInsightsInfo(false)}
+                className="p-1 text-stone-500 hover:text-stone-300 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="p-4 space-y-4 text-sm text-stone-300 font-serif">
+              <p>
+                The <span className="text-amber-400 font-medium">Insights</span> panel reveals the deeper patterns and forces shaping your character's life.
+              </p>
+              
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-1">Macro Events</h4>
+                  <p className="text-xs text-stone-400">
+                    World-scale events (political shifts, economic changes, technological breakthroughs) that ripple through society and may affect your character's path.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-1">Causal Threads</h4>
+                  <p className="text-xs text-stone-400">
+                    The hidden connections between events - what factors led to this moment, and how your choices create cascading effects.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-1">Active Arcs</h4>
+                  <p className="text-xs text-stone-400">
+                    Ongoing narrative threads in your life - relationships developing, challenges unfolding, opportunities emerging.
+                  </p>
+                </div>
+                
+                <div>
+                  <h4 className="text-xs uppercase tracking-widest font-heading text-stone-500 mb-1">Research Summary</h4>
+                  <p className="text-xs text-stone-400">
+                    When Research Mode is enabled, you'll see sociological analysis of events - systemic factors, agency notes, and uncertainty estimates.
+                  </p>
+                </div>
+              </div>
+              
+              <p className="text-xs text-stone-500 italic border-t border-stone-800 pt-3">
+                Insights grow richer as your story unfolds. The longer you play, the more patterns emerge.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
